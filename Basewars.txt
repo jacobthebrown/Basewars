@@ -1,0 +1,7 @@
+"Basewars"
+{
+	"base"		"sandbox"
+	"title"		"Basewars"
+	"maps"		"^gm_|^gmod_"
+	"menusystem"	"1"
+}
