@@ -61,12 +61,8 @@ end )
 net.Receive( "Entity_RequestGameData", function( msgLength, ply )
     
     local entityData = net.ReadEntity();
-    
-    net.Start("Entity_SendGameData");
-    net.WriteEntity(entityData);
-	net.WriteTable(entityData.gamedata);
-	net.Send(ply);
-end )
+	
+end)
 
 concommand.Add( "getWealth", function( ply, cmd, args ) 
 	

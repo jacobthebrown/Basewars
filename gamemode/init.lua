@@ -51,7 +51,7 @@ end
 function InitializePlayerData(ply)
 	ply.gamedata = ClassPlayerData(ply);
 end
-hook.Add( "PlayerLoadout", "Hook_InitializePlayerData", InitializePlayerData )
+hook.Add( "PlayerInitialSpawn", "Hook_InitializePlayerData", InitializePlayerData )
 
 function CleanUpPlayerData(ply) 
 	

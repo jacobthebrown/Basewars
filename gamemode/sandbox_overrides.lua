@@ -27,7 +27,7 @@ end
 
 function GM:PlayerSpawnNPC( ply ) 
 
-	return false;
+	return true;
 
 end
 
@@ -45,7 +45,7 @@ end
 
 function GM:PlayerSpawnSENT( ply ) 
 
-	return false;
+	return true;
 
 end
 

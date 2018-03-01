@@ -8,7 +8,7 @@ ENT.InitializeTime = 0;
 
 function ENT:Initialize()
 
-	self:SetModel(Model("models/props_junk/CinderBlock01a.mdl")) -- (self.model or Model("models/props_junk/CinderBlock01a.mdl"))
+	self:SetModel(Model("models/props_lab/servers.mdl")) -- (self.model or Model("models/props_junk/CinderBlock01a.mdl"))
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
@@ -19,6 +19,12 @@ function ENT:Initialize()
 	end
 	
 	self.Grabbed = false;
+	
+	local phys = self:GetPhysicsObject()
+ 
+	if phys and phys:IsValid() then
+		phys:EnableMotion(false) -- Freezes the object in place.
+	end
 	
 end
 

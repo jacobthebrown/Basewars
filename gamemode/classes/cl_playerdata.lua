@@ -52,6 +52,7 @@ hook.Add( "HUDPaint", "HUDPaint_DrawABox", function()
     	return;
     end
     
+    --[[
 	surface.SetFont( "Trebuchet18" )
 	surface.SetTextColor( 255, 255, 255, 255 )
     
@@ -70,7 +71,9 @@ hook.Add( "HUDPaint", "HUDPaint_DrawABox", function()
        	surface.SetTextPos( 128, 156 )
 	    surface.DrawText( eyedEnt.gamedata.balance or "Null" ) 
     end
+    ]]--
     
+
 	surface.SetTextPos( 128, 128 )
 	surface.DrawText( LocalPlayer().gamedata.money or "Null" )
     

@@ -16,6 +16,7 @@ function MoneyPrinter:new( ply, position )
 		balance = 0,
 		maxBalance = 1000,
 		owner = ply or nil,
+		ent = nil,
 		printAmount = 100
 	}
 
@@ -28,11 +29,20 @@ function MoneyPrinter:new( ply, position )
 	physicalEntity:Spawn();
 	physicalEntity.gamedata = metaMoneyPrinter;
 	
+	metaMoneyPrinter.ent = physicalEntity;
+	
 	return metaMoneyPrinter;
 end
 
 function MoneyPrinter:Print()
     self.balance = math.min( self.balance + self.printAmount, self.maxBalance);
+    
+    PrintTable(self)
+    
+    net.Start("Entity_SendGameData");
+    net.WriteEntity(self.ent);
+    net.WriteTable(self);
+	net.Broadcast()
     
 end
 
@@ -55,6 +65,11 @@ function MoneyPrinter:Use(ply, ent)
 	
 	ply.gamedata:RecieveMoney(self.balance);
 	self.balance = 0;
+	
+    net.Start("Entity_SendGameData");
+    net.WriteEntity(self.ent);
+    net.WriteTable(self);
+	net.Broadcast()
 
 end
 
