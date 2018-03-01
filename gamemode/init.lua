@@ -1,33 +1,62 @@
 -- These files get sent to the client
 
 AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "cl_hooks.lua" )
-AddCSLuaFile( "cl_gui.lua" )
 AddCSLuaFile( "shared.lua" )
-AddCSLuaFile( "sh_concommands.lua" )
-AddCSLuaFile( "sh_modules.lua" )
-AddCSLuaFile( "sh_items.lua" )
+
+include( 'shared.lua' )
+include( 'sandbox_overrides.lua')
+
+local gamefiles_sv = file.Find( "Basewars/gamemode/classes/sv_*.lua", "LUA" )
+for k, v in pairs(gamefiles_sv) do
+   include("classes/"..v)
+end
+
+local gamefiles_cl = file.Find( "Basewars/gamemode/classes/cl_*.lua", "LUA" )
+for k, v in pairs(gamefiles_cl) do
+   AddCSLuaFile("classes/"..v)
+end
+
+local gamefiles_sv = file.Find( "Basewars/gamemode/classes/entities/sv_*.lua", "LUA" )
+for k, v in pairs(gamefiles_sv) do
+   include("classes/entities/"..v)
+end
+
+local gamefiles_cl = file.Find( "Basewars/gamemode/classes/entities/cl_*.lua", "LUA" )
+for k, v in pairs(gamefiles_cl) do
+   AddCSLuaFile("classes/entities/"..v)
+end
 
 print("<--------------------Initializing Gamemode------------------------>")
 
-include( 'shared.lua' )
---include( 'sv_hooks.lua' )
-include( 'sv_utility.lua' )
-include( 'sh_concommands.lua' )
-include( 'sh_modules.lua' )
-include( 'sh_items.lua' )
-include( 'classes/playerdata.lua');
-
 function InitializeNetworkStrings()
 	--util.AddNetworkString( "Prop_Permissions" )
+	util.AddNetworkString( "Entity_RequestGameData" );
+	util.AddNetworkString( "Entity_SendGameData" );
+	util.AddNetworkString( "Entity_MoneyPrinter_GetBalance" );
+	util.AddNetworkString( "Entity_Player_GetWealth");
+	util.AddNetworkString( "Entity_Player_Client_RequestGameData");
+	util.AddNetworkString( "Entity_Player_Server_SendGameData");
+
 end
 hook.Add( "Initialize", "Hook_InitializeNetworkStrings", InitializeNetworkStrings )
 
+function GM:PlayerLoadout( ply )
+	ply:Give( "weapon_physgun" );
+	ply:Give( "gmod_tool" );
+
+	-- Prevent default Loadout.
+	return true;
+end
+
 function InitializePlayerData(ply)
-	console.log("Init player data")
-	ply.gamedata = PlayerData(ply);
-	
-	ply.gamedata:MakeSpeak();
+	ply.gamedata = ClassPlayerData(ply);
+end
+hook.Add( "PlayerLoadout", "Hook_InitializePlayerData", InitializePlayerData )
+
+function CleanUpPlayerData(ply) 
 	
 end
-hook.Add( "PlayerInitialSpawn", "Hook_InitializePlayerData", InitializePlayerData )
+hook.Add("PlayerDisconnected", "Hook_CleanUpPlayerData", CleanUpPlayerData)
+
+
+
