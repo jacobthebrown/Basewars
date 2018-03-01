@@ -10,7 +10,7 @@ end)
 
 concommand.Add( "modifyPlayer", function( ply, cmd, args )
 
-	SQL:modifyPlayerData(args[1], args[2], ply:SteamID64())
+	--SQL:modifyPlayerData(args[1], args[2], ply:SteamID64())
 	
 end)
 

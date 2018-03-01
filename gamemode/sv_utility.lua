@@ -1,4 +1,6 @@
-function getNameBySteamID(SteamID)
+util = {}
+
+function util.getNameBySteamID(SteamID)
 
 	for k,v in pairs (player.GetAll()) do
 	
