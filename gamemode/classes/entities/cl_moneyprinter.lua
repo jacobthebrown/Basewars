@@ -6,17 +6,16 @@ end )
 
 net.Receive( "Entity_SendGameData", function( msgLength )
 	
-	local targetEntity = net.ReadEntity();
-	
-        targetEntity.gamedata = net.ReadTable();
-        
-        PrintTable(targetEntity.gamedata)
+	local targetEntity, gamedata = net.ReadEntity(), net.ReadTable();
+	PrintTable(gamedata);
+	print(gamedata)
+    targetEntity.gamedata = gamedata;
         
 end )
 
 hook.Add( "PostDrawOpaqueRenderables", "example", function()
 
-	
+		
 	local trace = LocalPlayer():GetEyeTrace()
 	local angle = trace.HitNormal:Angle()
 

@@ -1,4 +1,4 @@
-GM.Name 	= "Acquire"
+GM.Name 	= "Basewars"
 GM.Author 	= "Jacob Brown"
 GM.Email 	= ""
 GM.Website 	= ""

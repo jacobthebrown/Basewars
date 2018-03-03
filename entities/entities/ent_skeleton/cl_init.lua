@@ -50,3 +50,12 @@ function ENT:Draw()
 		
 	cam.End3D2D()
 end
+
+hook.Add( "PreDrawHalos", "AddHalos", function()
+	
+	local traceEntity = LocalPlayer():GetEyeTrace().Entity;
+
+	if (traceEntity != null && traceEntity:GetClass() == "ent_skeleton") then
+		halo.Add( { traceEntity }, Color( 255, 0, 0 ), 1, 1, 2 )
+	end
+end )

@@ -41,6 +41,6 @@ end
 
 function ENT:OnRemove()
 
-	self.gamedata = {};	
+	self.gamedata:Remove();
 	
 end

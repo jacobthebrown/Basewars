@@ -2,50 +2,56 @@ local CONFIG_PrintTimer = 3;
 
 MoneyPrinter = {};
 MoneyPrinter.__index = MoneyPrinter;
---setmetatable( MoneyPrinter, {__call = MoneyPrinter.new } )
---setmetatable( MoneyPrinter, {__tostring = MoneyPrinter.ToString } )
 
-function MoneyPrinter:new( ply, position )
+function MoneyPrinter:new( ply, position, maxBalance, printAmount )
 	
+	-- Check if player that created the entity, exists.
 	if (ply == nil || !ply:IsValid() || !ply:IsPlayer()) then
-		--return nil;
+		return nil;
 	end
 	
+	-- Create a clone of the metatable of the entity.
 	local metaMoneyPrinter = {
 		entityType = "cash_moneyprinter",
 		balance = 0,
-		maxBalance = 1000,
+		maxBalance = maxBalance or 1000,
 		owner = ply or nil,
 		ent = nil,
-		printAmount = 100
+		printAmount = printAmount or 100
 	}
-
 	setmetatable( metaMoneyPrinter, MoneyPrinter ) 
 	
-	-- Give 
+	-- Create the physical entity that the player interacts with.
 	local physicalEntity = ents.Create( "ent_skeleton" );
 	if ( !IsValid( physicalEntity ) ) then return end
 	physicalEntity:SetPos(position);
 	physicalEntity:Spawn();
 	physicalEntity.gamedata = metaMoneyPrinter;
 	
+	-- Attach the aforementioned physical entity to the enttiy.
 	metaMoneyPrinter.ent = physicalEntity;
 	
 	return metaMoneyPrinter;
 end
 
+--//
+--//	Entity prints money until full.
+--//
 function MoneyPrinter:Print()
     self.balance = math.min( self.balance + self.printAmount, self.maxBalance);
     
-    PrintTable(self)
-    
-    net.Start("Entity_SendGameData");
-    net.WriteEntity(self.ent);
-    net.WriteTable(self);
-	net.Broadcast()
+    return self.balance;
+    -- Send game data to all clients to 
+    --net.Start("Entity_SendGameData");
+    --net.WriteEntity(self.ent);
+    --net.WriteTable({ balance = self.balance});
+	--net.Broadcast()
     
 end
 
+--//
+--//	Withdraw money from enttity.
+--//
 function MoneyPrinter:Withdraw(ply)
 
     if (ply:IsValid()) then
@@ -101,8 +107,6 @@ concommand.Add( "createPrinter", function( ply, cmd, args )
 		ply.gamedata.entities.printers = {};
 	end
 	
-	PrintTable(newPrinter)
-	
 	table.insert(ply.gamedata.entities.printers, newPrinter)
 	
 end)
@@ -114,6 +118,9 @@ end)
 --]]
 function InitalizeGlobalTimers()
 	timer.Create( "Timers_PrintAll", CONFIG_PrintTimer, 0, function() 
+		
+		local printersToUpdate = {};
+		table.insert(printersToUpdate, )
 		for key_index, value_player in pairs( player.GetAll() ) do
 			if (value_player.gamedata != nil && value_player.gamedata.entities.printers != nil) then
 				for key_index, value_entity in pairs( value_player.gamedata.entities.printers ) do
@@ -121,7 +128,13 @@ function InitalizeGlobalTimers()
 				end
 			end
 		end
-	
+		
+	    -- Send game data to all clients to 
+	    net.Start("Entity_MassSendGameData");
+	    net.WriteEntity(self.ent);
+	    net.WriteTable({ balance = self.balance});
+		net.Broadcast()
+		
 	end )
 end
 hook.Add("PostGamemodeLoaded", "Hook_InitalizeGlobalTimers", InitalizeGlobalTimers)
