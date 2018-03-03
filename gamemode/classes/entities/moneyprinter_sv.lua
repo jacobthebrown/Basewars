@@ -1,8 +1,11 @@
 local CONFIG_PrintTimer = 3;
 
-MoneyPrinter = {};
+MoneyPrinter = MoneyPrinter or {};
 MoneyPrinter.__index = MoneyPrinter;
 
+--//
+--//	Constructs a money printer object.
+--//
 function MoneyPrinter:new( ply, position, maxBalance, printAmount )
 	
 	-- Check if player that created the entity, exists.
@@ -33,60 +36,61 @@ function MoneyPrinter:new( ply, position, maxBalance, printAmount )
 	
 	return metaMoneyPrinter;
 end
+setmetatable( MoneyPrinter, {__call = MoneyPrinter.new } )
 
 --//
 --//	Entity prints money until full.
+--//	~Normally we would want to send a net message to the client to update the balance
+--//	but we are doing that in a global timer to all printers for net efficency.~
 --//
 function MoneyPrinter:Print()
     self.balance = math.min( self.balance + self.printAmount, self.maxBalance);
     
     return self.balance;
-    -- Send game data to all clients to 
-    --net.Start("Entity_SendGameData");
-    --net.WriteEntity(self.ent);
-    --net.WriteTable({ balance = self.balance});
-	--net.Broadcast()
-    
 end
 
 --//
---//	Withdraw money from enttity.
+--//	Withdraw money from entity.
 --//
-function MoneyPrinter:Withdraw(ply)
+function MoneyPrinter:Withdraw(ply, amount)
+
+	if (self.balance <= 0) then
+		return;
+	end
 
     if (ply:IsValid()) then
-        ply.playerdata:GiveMoney();
+        ply.gamedata:GiveWealth(math.min(amount, self.balance));
+        self.balance = self.balance - math.min(amount, self.balance);
+
+		-- After a withdraw we need to update the balance for the client..
+		basewars.util.ents:SendGameDataSingle(self.ent, {balance = self.balance});
     else
-        print("No player data exists");
+        print("MoneyPrinter:Withdraw() - Player was invalid / does not exist");
     end
     
 end
 
+--//
+--//	The function given to the physical entity to be called on ENT:Use.
+--//
 function MoneyPrinter:Use(ply, ent)	
 	
-	if (self.balance == 0) then
+	if (self.balance <= 0) then
 		return;
 	end
 
-	
-	ply.gamedata:RecieveMoney(self.balance);
-	self.balance = 0;
-	
-    net.Start("Entity_SendGameData");
-    net.WriteEntity(self.ent);
-    net.WriteTable(self);
-	net.Broadcast()
+	self:Withdraw(ply, self.balance);
 
 end
 
+--//
+--// Garbage collect money printer.
+--// TODO: Make sure garbage collection is actually happening.
+--//
 function MoneyPrinter:Remove() 
-	
-	table.RemoveByValue( self.owner.gamedata.entities.printers, self )
-	
+	table.RemoveByValue( self.owner.gamedata.entities, self )
 end
 
-setmetatable( MoneyPrinter, {__call = MoneyPrinter.new } )
---setmetatable( MoneyPrinter, {balance = 0 } )
 
 --[[
 --		
@@ -103,11 +107,7 @@ concommand.Add( "createPrinter", function( ply, cmd, args )
     local tr = util.TraceLine(trace);
 	local newPrinter = MoneyPrinter(ply, tr.HitPos); 
 	
-	if (ply.gamedata.entities.printers == nil) then
-		ply.gamedata.entities.printers = {};
-	end
-	
-	table.insert(ply.gamedata.entities.printers, newPrinter)
+	table.insert(ply.gamedata.entities, newPrinter)
 	
 end)
 
@@ -116,25 +116,26 @@ end)
 --		Static Functions for the MoneyPrinter Class.
 --
 --]]
+
+--//
+--//	Creates a global timer that loops through every printer and prints.
+--//
 function InitalizeGlobalTimers()
 	timer.Create( "Timers_PrintAll", CONFIG_PrintTimer, 0, function() 
-		
-		local printersToUpdate = {};
-		table.insert(printersToUpdate, )
-		for key_index, value_player in pairs( player.GetAll() ) do
-			if (value_player.gamedata != nil && value_player.gamedata.entities.printers != nil) then
-				for key_index, value_entity in pairs( value_player.gamedata.entities.printers ) do
-					value_entity:Print();
+
+		local updatedPrinters = {};
+		for k_1, v_player in pairs( player.GetAll() ) do
+			if (v_player.gamedata != nil && v_player.gamedata.entities != nil) then
+				for k_2, v_ent in pairs( v_player.gamedata.entities ) do
+					if (v_ent.balance < v_ent.maxBalance && v_ent.entityType == "cash_moneyprinter") then
+						table.insert(updatedPrinters, { ent = v_ent.ent, gamedata = { balance = v_ent:Print() } } );
+					end
 				end
 			end
 		end
 		
-	    -- Send game data to all clients to 
-	    net.Start("Entity_MassSendGameData");
-	    net.WriteEntity(self.ent);
-	    net.WriteTable({ balance = self.balance});
-		net.Broadcast()
-		
+		-- TODO: IN THE FUTURE DO A CHECK TO MAKE SURE prnitersToUpdate is not bigger than max net message.
+		basewars.util.ents:SendGameDataMany(updatedPrinters);
 	end )
 end
 hook.Add("PostGamemodeLoaded", "Hook_InitalizeGlobalTimers", InitalizeGlobalTimers)

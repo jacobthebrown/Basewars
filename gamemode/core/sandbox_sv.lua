@@ -1,3 +1,14 @@
+function GM:PlayerLoadout( ply )
+	ply:Give( "weapon_physgun" );
+	ply:Give( "gmod_tool" );
+
+	-- Prevent default Loadout.
+	return true;
+end
+
+function GM:GetFallDamage(client, speed)
+	return (speed - 580) * (100 / 444)
+end
 
 function GM:PlayerSpawnEffect( ply ) 
 
@@ -60,3 +71,11 @@ function GM:PlayerSpawnVehicle( ply )
 	return false;
 
 end
+
+-- Shortcuts for (super)admin only things.
+--local IsAdmin = function(_, client) return client:IsAdmin() end
+
+-- Set the gamemode hooks to the appropriate shortcuts.
+--GM.PlayerGiveSWEP = IsAdmin
+--GM.PlayerSpawnEffect = IsAdmin
+--GM.PlayerSpawnSENT = IsAdmin

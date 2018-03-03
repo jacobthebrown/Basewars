@@ -18,13 +18,7 @@ function ENT:Initialize()
 		phys:Wake();
 	end
 	
-	self.Grabbed = false;
-	
-	local phys = self:GetPhysicsObject()
- 
-	if phys and phys:IsValid() then
-		phys:EnableMotion(false) -- Freezes the object in place.
-	end
+
 	
 end
 
