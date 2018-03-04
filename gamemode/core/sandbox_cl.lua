@@ -11,7 +11,7 @@ local function removeSandboxTabs()
     	for k, v in pairs( g_SpawnMenu.CreateMenu.Items ) do
     		 if table.HasValue(tabstoremove, v.Tab:GetText()) then
     			g_SpawnMenu.CreateMenu:CloseTab( v.Tab, true )
-    			removeOldTabls()
+    			removeSandboxTabs()
     		end
     	end
     end

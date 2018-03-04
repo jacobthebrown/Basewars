@@ -12,7 +12,7 @@ function ENTS:RecieveGameData( msgLength )
 
         
 end 
-net.Receive( "Entity_SendGameDataSingle", ENTS.RecieveGameData)
+net.Receive( "GameObject_SendGameDataSingle", ENTS.RecieveGameData)
 -- We do ENTS.Recieve instead of ENTS:Recieve because '.' is referenceing and ':' is invoking.
 
 
@@ -34,5 +34,5 @@ function ENTS:RecieveAllGameData( msgLength )
 	end
         
 end
-net.Receive( "Entity_SendGameDataMany", ENTS.RecieveAllGameData)
+net.Receive( "GameObject_SendGameDataMany", ENTS.RecieveAllGameData)
 -- We do ENTS.RecieveAllGameData instead of ENTS:RecieveAllGameData because '.' is referenceing and ':' is invoking.

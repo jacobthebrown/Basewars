@@ -1,49 +1,34 @@
 local CONFIG_PrintTimer = 3;
+local CONFIG_DefaultMaxBalance = 1000;
+local CONFIG_DefaultPrintAmount = 1;
 
-MoneyPrinter = MoneyPrinter or {};
-MoneyPrinter.__index = MoneyPrinter;
+Obj_MoneyPrinter = Obj_MoneyPrinter or {};
+Obj_MoneyPrinter.__index = Obj_MoneyPrinter;
 
 --//
 --//	Constructs a money printer object.
 --//
-function MoneyPrinter:new( ply, position, maxBalance, printAmount )
+function Obj_MoneyPrinter:new( ply, position, maxBalance, printAmount )
 	
-	-- Check if player that created the entity, exists.
-	if (ply == nil || !ply:IsValid() || !ply:IsPlayer()) then
-		return nil;
-	end
-	
-	-- Create a clone of the metatable of the entity.
-	local metaMoneyPrinter = {
+	local metaProperties = {
 		entityType = "cash_moneyprinter",
+		propModel = "models/props_lab/servers.mdl",
 		balance = 0,
-		maxBalance = maxBalance or 1000,
+		maxBalance = maxBalance or CONFIG_DefaultMaxBalance,
 		owner = ply or nil,
 		ent = nil,
-		printAmount = printAmount or 100
+		printAmount = printAmount or CONFIG_DefaultPrintAmount
 	}
-	setmetatable( metaMoneyPrinter, MoneyPrinter ) 
 	
-	-- Create the physical entity that the player interacts with.
-	local physicalEntity = ents.Create( "ent_skeleton" );
-	if ( !IsValid( physicalEntity ) ) then return end
-	physicalEntity:SetPos(position);
-	physicalEntity:Spawn();
-	physicalEntity.gamedata = metaMoneyPrinter;
-	
-	-- Attach the aforementioned physical entity to the enttiy.
-	metaMoneyPrinter.ent = physicalEntity;
-	
-	return metaMoneyPrinter;
+	return GameObject:new(Obj_MoneyPrinter, metaProperties, ply, position);
 end
-setmetatable( MoneyPrinter, {__call = MoneyPrinter.new } )
 
 --//
 --//	Entity prints money until full.
 --//	~Normally we would want to send a net message to the client to update the balance
 --//	but we are doing that in a global timer to all printers for net efficency.~
 --//
-function MoneyPrinter:Print()
+function Obj_MoneyPrinter:Print()
     self.balance = math.min( self.balance + self.printAmount, self.maxBalance);
     
     return self.balance;
@@ -52,7 +37,7 @@ end
 --//
 --//	Withdraw money from entity.
 --//
-function MoneyPrinter:Withdraw(ply, amount)
+function Obj_MoneyPrinter:Withdraw(ply, amount)
 
 	if (self.balance <= 0) then
 		return;
@@ -65,7 +50,7 @@ function MoneyPrinter:Withdraw(ply, amount)
 		-- After a withdraw we need to update the balance for the client..
 		basewars.util.ents:SendGameDataSingle(self.ent, {balance = self.balance});
     else
-        print("MoneyPrinter:Withdraw() - Player was invalid / does not exist");
+        print("Obj_MoneyPrinter:Withdraw() - Player was invalid / does not exist");
     end
     
 end
@@ -73,7 +58,7 @@ end
 --//
 --//	The function given to the physical entity to be called on ENT:Use.
 --//
-function MoneyPrinter:Use(ply, ent)	
+function Obj_MoneyPrinter:Use(ply, ent)	
 	
 	if (self.balance <= 0) then
 		return;
@@ -87,7 +72,7 @@ end
 --// Garbage collect money printer.
 --// TODO: Make sure garbage collection is actually happening.
 --//
-function MoneyPrinter:Remove() 
+function Obj_MoneyPrinter:Remove() 
 	table.RemoveByValue( self.owner.gamedata.entities, self )
 end
 
@@ -105,7 +90,7 @@ concommand.Add( "createPrinter", function( ply, cmd, args )
     trace.filter = ply;
     
     local tr = util.TraceLine(trace);
-	local newPrinter = MoneyPrinter(ply, tr.HitPos); 
+	local newPrinter = Obj_MoneyPrinter:new(ply, tr.HitPos); 
 	
 	table.insert(ply.gamedata.entities, newPrinter)
 	
@@ -113,7 +98,7 @@ end)
 
 --[[
 --		
---		Static Functions for the MoneyPrinter Class.
+--		Static Functions for the Obj__MoneyPrinter Class.
 --
 --]]
 
@@ -127,7 +112,7 @@ function InitalizeGlobalTimers()
 		for k_1, v_player in pairs( player.GetAll() ) do
 			if (v_player.gamedata != nil && v_player.gamedata.entities != nil) then
 				for k_2, v_ent in pairs( v_player.gamedata.entities ) do
-					if (v_ent.balance < v_ent.maxBalance && v_ent.entityType == "cash_moneyprinter") then
+					if (v_ent.entityType == "cash_moneyprinter" && v_ent.balance < v_ent.maxBalance) then
 						table.insert(updatedPrinters, { ent = v_ent.ent, gamedata = { balance = v_ent:Print() } } );
 					end
 				end
