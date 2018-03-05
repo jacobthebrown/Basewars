@@ -18,8 +18,6 @@ function ENT:Initialize()
 		phys:Wake();
 	end
 	
-
-	
 end
 
 function ENT:Use(activator, caller, USE_SET)

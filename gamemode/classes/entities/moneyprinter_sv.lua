@@ -2,16 +2,17 @@ local CONFIG_PrintTimer = 3;
 local CONFIG_DefaultMaxBalance = 1000;
 local CONFIG_DefaultPrintAmount = 1;
 
-Obj_MoneyPrinter = Obj_MoneyPrinter or {};
-Obj_MoneyPrinter.__index = Obj_MoneyPrinter;
+Object_MoneyPrinter = Object_MoneyPrinter or {};
+Object_MoneyPrinter.__index = Object_MoneyPrinter;
+local Object = Object_MoneyPrinter;
 
 --//
 --//	Constructs a money printer object.
 --//
-function Obj_MoneyPrinter:new( ply, position, maxBalance, printAmount )
+function Object:new( ply, position, maxBalance, printAmount )
 	
-	local metaProperties = {
-		entityType = "cash_moneyprinter",
+	local metaInstance = {
+		entityType = "Object_MoneyPrinter",
 		propModel = "models/props_lab/servers.mdl",
 		balance = 0,
 		maxBalance = maxBalance or CONFIG_DefaultMaxBalance,
@@ -20,7 +21,10 @@ function Obj_MoneyPrinter:new( ply, position, maxBalance, printAmount )
 		printAmount = printAmount or CONFIG_DefaultPrintAmount
 	}
 	
-	return GameObject:new(Obj_MoneyPrinter, metaProperties, ply, position);
+	local objectInstance = GameObject:new(Object, metaInstance, ply, position);
+	GameObject:newClient(objectInstance);
+	
+	return objectInstance;
 end
 
 --//
@@ -28,7 +32,7 @@ end
 --//	~Normally we would want to send a net message to the client to update the balance
 --//	but we are doing that in a global timer to all printers for net efficency.~
 --//
-function Obj_MoneyPrinter:Print()
+function Object:Print()
     self.balance = math.min( self.balance + self.printAmount, self.maxBalance);
     
     return self.balance;
@@ -37,7 +41,7 @@ end
 --//
 --//	Withdraw money from entity.
 --//
-function Obj_MoneyPrinter:Withdraw(ply, amount)
+function Object:Withdraw(ply, amount)
 
 	if (self.balance <= 0) then
 		return;
@@ -48,7 +52,7 @@ function Obj_MoneyPrinter:Withdraw(ply, amount)
         self.balance = self.balance - math.min(amount, self.balance);
 
 		-- After a withdraw we need to update the balance for the client..
-		basewars.util.ents:SendGameDataSingle(self.ent, {balance = self.balance});
+		GameObject:SendGameDataSingle(self.ent, {balance = self.balance});
     else
         print("Obj_MoneyPrinter:Withdraw() - Player was invalid / does not exist");
     end
@@ -58,7 +62,7 @@ end
 --//
 --//	The function given to the physical entity to be called on ENT:Use.
 --//
-function Obj_MoneyPrinter:Use(ply, ent)	
+function Object:Use(ply, ent)	
 	
 	if (self.balance <= 0) then
 		return;
@@ -66,13 +70,20 @@ function Obj_MoneyPrinter:Use(ply, ent)
 
 	self:Withdraw(ply, self.balance);
 
+	net.Start("GameObject_SendGameDataSingle");
+	net.WriteEntity(ent);
+	net.WriteTable(self)
+	net.Send(ply);
+	
+	
+
 end
 
 --//
 --// Garbage collect money printer.
 --// TODO: Make sure garbage collection is actually happening.
 --//
-function Obj_MoneyPrinter:Remove() 
+function Object:Remove() 
 	table.RemoveByValue( self.owner.gamedata.entities, self )
 end
 
@@ -90,7 +101,7 @@ concommand.Add( "createPrinter", function( ply, cmd, args )
     trace.filter = ply;
     
     local tr = util.TraceLine(trace);
-	local newPrinter = Obj_MoneyPrinter:new(ply, tr.HitPos); 
+	local newPrinter = Object_MoneyPrinter:new(ply, tr.HitPos); 
 	
 	table.insert(ply.gamedata.entities, newPrinter)
 	
@@ -112,15 +123,14 @@ function InitalizeGlobalTimers()
 		for k_1, v_player in pairs( player.GetAll() ) do
 			if (v_player.gamedata != nil && v_player.gamedata.entities != nil) then
 				for k_2, v_ent in pairs( v_player.gamedata.entities ) do
-					if (v_ent.entityType == "cash_moneyprinter" && v_ent.balance < v_ent.maxBalance) then
+					if (v_ent.entityType == "Object_MoneyPrinter" && v_ent.balance < v_ent.maxBalance) then
 						table.insert(updatedPrinters, { ent = v_ent.ent, gamedata = { balance = v_ent:Print() } } );
 					end
 				end
 			end
 		end
-		
 		-- TODO: IN THE FUTURE DO A CHECK TO MAKE SURE prnitersToUpdate is not bigger than max net message.
-		basewars.util.ents:SendGameDataMany(updatedPrinters);
+		GameObject:SendGameDataMany(updatedPrinters);
 	end )
 end
 hook.Add("PostGamemodeLoaded", "Hook_InitalizeGlobalTimers", InitalizeGlobalTimers)

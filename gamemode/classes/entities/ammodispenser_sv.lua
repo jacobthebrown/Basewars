@@ -1,10 +1,12 @@
-Obj_AmmoDispenser = Obj_AmmoDispenser or {};
-Obj_AmmoDispenser.__index = Obj_AmmoDispenser;
+Object_AmmoDispenser = Object_AmmoDispenser or {};
+Object_AmmoDispenser.__index = Object_AmmoDispenser;
+local Object = Object_AmmoDispenser;
+
 
 --//
 --//	Constructs a money printer object.
 --//
-function Obj_AmmoDispenser:new( ply, position, maxBalance, printAmount )
+function Object:new( ply, position, maxBalance, printAmount )
 	
 	local metaProperties = {
 		entityType = "obj_ammodispenser",
@@ -14,12 +16,12 @@ function Obj_AmmoDispenser:new( ply, position, maxBalance, printAmount )
 		lastDispensed = 0;
 	}
 	
-	return GameObject:new(Obj_AmmoDispenser, metaProperties, ply, position);
+	return GameObject:new(Object, metaProperties, ply, position);
 end
 
 --//	The function given to the physical entity to be called on ENT:Use.
 --//
-function Obj_AmmoDispenser:Use(ply, ent)
+function Object:Use(ply, ent)
 	if (CurTime() >= self.lastDispensed + 2) then 
     	self.lastDispensed = CurTime();
     	ply:GiveAmmo(10, ply:GetActiveWeapon():GetPrimaryAmmoType());
@@ -31,7 +33,7 @@ end
 --// Garbage collect money printer.
 --// TODO: Make sure garbage collection is actually happening.
 --//
-function Obj_AmmoDispenser:Remove() 
+function Object:Remove() 
 	table.RemoveByValue( self.owner.gamedata.entities, self )
 end
 
@@ -48,7 +50,7 @@ concommand.Add( "createAmmoDispenser", function( ply, cmd, args )
     trace.filter = ply;
     
     local tr = util.TraceLine(trace);
-	local newObject = Obj_AmmoDispenser:new(ply, tr.HitPos); 
+	local newObject = Object_AmmoDispenser:new(ply, tr.HitPos); 
 	
 	table.insert(ply.gamedata.entities, newObject)
 	

@@ -1,5 +1,5 @@
-Obj_WeaponFactory = Obj_MoneyPrinter or {};
-Obj_WeaponFactory.__index = Obj_MoneyPrinter;
+Obj_WeaponFactory = Obj_WeaponFactory or {};
+Obj_WeaponFactory.__index = Obj_WeaponFactory;
 
 --//
 --//	Constructs a money printer object.

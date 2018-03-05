@@ -1,29 +1,52 @@
-local CONFIG_PrintTimer = 3;
-
 GameObject = {};
 
 --//
 --//	Constructs a money printer object.
 --//
-function GameObject:new( metaObject, metaProperties, ply, position )
+function GameObject:new( metaObject, metaInstance, ply, position, angle )
 	
 	-- Check if player that created the GameObject, exists.
 	if (ply == nil || !ply:IsValid() || !ply:IsPlayer()) then
 		return nil;
 	end
 	
+	-- Create the physical entity that the player interacts with.
+	metaInstance.ent = ents.Create( "ent_skeleton" );
+	if ( !IsValid( metaInstance.ent ) ) then return end
+	metaInstance.ent.gamedata = metaInstance;
+	metaInstance.ent:Spawn();
+	metaInstance.ent:SetPos(position);
+	
+	if (angle != nil) then
+		metaInstance.ent:SetAngles(angle);
+	end
+	
 	-- Create a clone of the metatable of the GameObject.
-	setmetatable( metaProperties, metaObject ) 
+	setmetatable( metaInstance, metaObject ) 
 	
-	-- Create the physical GameObject that the player interacts with.
-	local physicalEntity = ents.Create( "ent_skeleton" );
-	if ( !IsValid( physicalEntity ) ) then return end
-	physicalEntity.gamedata = metaProperties;
-	physicalEntity:Spawn();
-	physicalEntity:SetPos(position);
+	return metaInstance;
+end
+
+function GameObject:newClient(tbl)
+
+	PrintTable(tbl)
+	net.Start("GameObject_SendGameInitSingle")
+	net.WriteTable(tbl);
+	net.Broadcast();
 	
-	-- Attach the aforementioned physical entity to the enttiy.
-	metaProperties.ent = physicalEntity;
+end
+
+function GameObject:SendGameDataSingle(ent, tbl) 
+    
+	net.Start("GameObject_SendGameDataSingle");
+	net.WriteEntity(ent);
+	net.WriteTable(tbl);
+	net.Broadcast();
 	
-	return metaProperties;
+end
+
+function GameObject:SendGameDataMany(tbl) 
+	net.Start("GameObject_SendGameDataMany");
+	net.WriteTable(tbl);
+	net.Broadcast();
 end
