@@ -1,0 +1,126 @@
+SERVER --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*
+print("Fetching")
+print("Local Request: "..CurTime())
+http.Fetch( "http://172.31.0.7:3000",
+	function( body, len, headers, code )
+		-- The first argument is the HTML we asked for.
+		TheReturnedHTML = body
+        print("Local Response: "..CurTime().." | ".. "Local: " .. body)
+	end,
+	function( error )
+		print(err)
+	end
+)
+
+print("Remote Request: "..CurTime())
+http.Fetch( "http://34.201.6.133:3000/",
+	function( body, len, headers, code )
+		-- The first argument is the HTML we asked for.
+		TheReturnedHTML = body
+        print("Remote Response: "..CurTime().." | ".. "Local: " .. body)
+	end,
+	function( err )
+		-- We failed. =(
+		print(err)
+	end
+)
+*/
+
+--[[
+--		
+--		Console Command Functions.
+--
+--]]
+concommand.Add( "test", function( ply, cmd, args ) 
+	
+	
+
+	timer.Create( "shrimp", 0.01, 1000, function() 
+	
+		net.Start("test")
+		net.WriteFloat(CurTime());
+		net.WriteInt(CurTime(), 32);
+		net.Broadcast();
+
+	end )
+	
+end)
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+print("Fetchiing")
+--print("Remote Request: "..CurTime())
+
+
+for i = 1, 1 do 
+	--print(i)
+	--local initTime = CurTime();
+	--
+	--http.Fetch( "http://34.201.6.133:3000/",
+	--	function( body, len, headers, code )
+	--		print("nope")
+	--		-- The first argument is the HTML we asked for.
+	--		averge = average + (CurTime() - initTime);
+	--		
+	--	end,
+	--	function( error )
+	--		-- We failed. =(
+	--		print("Fail")
+	--	end)
+
+end
+
+
+local average = 0;
+local i = 0;
+timer.Create( "shrimp", 0.01, 205, function() 
+	
+	local header = {}
+	header["cache-control"] = "no-cache";
+	header["content-type"] = "application/x-www-form-urlencoded";
+	
+	local initTime = CurTime();
+	http.Fetch( "http://34.201.6.133:3000/",
+		function( body, len, headers, code )
+			-- The first argument is the HTML we asked for.
+			
+			local currtime = CurTime();
+	        average = average + (currtime - initTime);
+
+			if (i >= 199) then
+				print("REDIS: After " ..(i+1).. " iterations the Averge was: " .. (average/i))	
+			end
+			
+			i = i + 1;
+	        
+		end,
+		function( err )
+			-- We failed. =(
+			print(err)
+		end,
+		header)
+
+end )
+
+local average = 0;
+local amount = 0;
+local function test()
+	
+	local gamedata = net.ReadFloat();
+    
+	average = average + (CurTime() - gamedata);
+    
+    amount = amount + 1;
+
+end 
+net.Receive( "test", test)
+
+concommand.Add( "finishTest", function( ply, cmd, args ) 
+	
+	print("After "..amount.." Iterations the Average was: " .. average/amount)
+
+end)
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

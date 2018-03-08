@@ -1,5 +1,6 @@
 function InitializePlayerData(ply)
-	ply.gamedata = PlayerData(ply);
+	print("init spawn")
+	ply.gamedata = PlayerData:new(ply);
 end
 hook.Add( "PlayerInitialSpawn", "Hook_InitializePlayerData", InitializePlayerData )
 
@@ -16,41 +17,6 @@ hook.Add("PhysgunPickup", "Hook_OnPhysgunPickup", OnPhysgunPickup)
 
 function OnPhysgunDrop( ply, ent )
 	
-	if (ent == nil) then
-		return;
-	end
-	
-	if (ent.gamedata == nil || ent.gamedata.temp == nil) then
-		ent.gamedata = ent.gamedata or {};
-		ent.gamedata.temp = ent.gamedata.temp or {};
-	end
-	
-	local traceData = { start = ent:GetPos(), endpos = ent:GetPos(), filter = ent }
-
-	local tr = util.TraceEntity( traceData, ent )
-	if ( tr.Entity:IsValid() && tr.Entity:IsPlayer() ) then
-
-		if (ent.gamedata.temp.IsGhosted == nil) then
-			ent.gamedata.temp = {IsGhosted = true, rendermode = ent:GetRenderMode(), collisiongroup = ent:GetCollisionGroup()};
-		elseif (!ent.gamedata.temp.IsGhosted) then
-			ent.gamedata.temp.rendermode = ent:GetRenderMode();
-			ent.gamedata.temp.collisiongroup = ent:GetCollisionGroup();
-			ent.gamedata.temp.IsGhosted = true;
-		end
-		
-		ent:SetColor(Color(255, 255, 255, 200));
-		ent:SetRenderMode(RENDERMODE_TRANSALPHA);
-		ent:SetCollisionGroup(COLLISION_GROUP_WEAPON);
-	else
-		if (ent.gamedata.temp.IsGhosted) then
-			ent.gamedata.temp.IsGhosted = false;
-			ent:SetColor(Color(255, 255, 255, 255));
-			ent:SetRenderMode(ent.gamedata.temp.rendermode);
-			ent:SetCollisionGroup(ent.gamedata.temp.collisiongroup);
-		end
-	end
-	
-
 	local phys = ent:GetPhysicsObject();
  
 	if phys and phys:IsValid() then
@@ -74,3 +40,58 @@ function OnPlayerSpawnObject(ply, model, ent)
 	
 end
 hook.Add("PlayerSpawnedProp", "Hook_OnPlayerSpawnObject", OnPlayerSpawnObject)
+
+local function minVector(vec1, vec2)
+	
+	local zeroVector = Vector(0,0,0);
+	
+	if (zeroVector:DistToSqr(vec1) < zeroVector:DistToSqr(vec2) ) then
+		return vec1;
+	else
+		return vec2;
+	end
+	
+end
+
+local function maxVector(vec1, vec2)
+	
+	local zeroVector = Vector(0,0,0);
+	
+	if (zeroVector:DistToSqr(vec1) > zeroVector:DistToSqr(vec2) ) then
+		return vec1;
+	else
+		return vec2;
+	end
+	
+end
+
+function SafeZoneCheck(ply)
+		
+	for k, v in pairs (ents.GetAll()) do
+		
+		if (v.gamedata == nil || v.gamedata.entityType != "Object_SafeZone") then
+			continue;	
+		end
+
+		
+		local minVectorLocal = v:OBBMins() + Vector(-200,-200,0);
+		local maxVectorLocal = v:OBBMaxs() + Vector(200,200,0);
+		local absolutePos1 = v:LocalToWorld(minVectorLocal);
+		local absolutePos2 = v:LocalToWorld(maxVectorLocal);
+		
+		local minPos = minVector(absolutePos1, absolutePos2);
+		local maxPos = maxVector(absolutePos1, absolutePos2);
+		
+		local nope = false;
+		for k, v in pairs (ents.FindInBox( minPos, maxPos )) do
+			
+			if (v == ply) then
+				return false;
+			end
+		end
+	end
+	
+	
+end
+hook.Add("PlayerShouldTakeDamage", "Hook_SafeZoneCheck", SafeZoneCheck)
+

@@ -2,54 +2,73 @@ if SERVER then
     
     local function IncludeFromDirectory(dir) 
         
-        
-        local files_sv = file.Find("basewars/gamemode/" .. dir .. "*_sv.lua", "LUA");
-        local files_sh = file.Find("basewars/gamemode/" .. dir .. "*_sh.lua", "LUA");
+        local dirFiles, dirDirectories = file.Find("basewars/gamemode/" .. dir .. "*", "LUA");
        
-       
-        for k, file in pairs(table.Add(files_sv, files_sh)) do
-            include(dir .. file)
+        for k, luaFile in pairs(dirFiles) do
+            if (string.match(luaFile, "_sv.lua$") or string.match(luaFile, "_sh.lua$")) then
+                include(dir .. luaFile)
+                --print(luaFile)
+            end
         end
-
+    
+        for k, dirFile in pairs(dirDirectories) do
+            IncludeFromDirectory(dir..dirFile.."/") 
+        end
+    
         
     end
     
     local function AddCSLuaFileFromDirectory(dir) 
         
-        local files_cl = file.Find("basewars/gamemode/" .. dir .. "*_cl.lua", "LUA");
-        local files_sh = file.Find("basewars/gamemode/" .. dir .. "*_sh.lua", "LUA");
+        local dirFiles, dirDirectories = file.Find("basewars/gamemode/" .. dir .. "*", "LUA");
        
-        for k, file in pairs(table.Add(files_cl, files_sh)) do
-            AddCSLuaFile(dir .. file)
+        for k, luaFile in pairs(dirFiles) do
+            if (string.match(luaFile, "_cl.lua$") or string.match(luaFile, "_sh.lua$")) then
+                AddCSLuaFile(dir .. luaFile)
+            end
+        end
+    
+        for k, dirFile in pairs(dirDirectories) do
+            AddCSLuaFileFromDirectory(dir..dirFile .. "/") 
         end
         
     end
     
-    IncludeFromDirectory("core/");
-    IncludeFromDirectory("classes/");
-    IncludeFromDirectory("classes/entities/");
-    AddCSLuaFileFromDirectory("core/");
-    AddCSLuaFileFromDirectory("classes/");
-    AddCSLuaFileFromDirectory("classes/entities/");
+    function ExecuteIncludes() 
+    
+        IncludeFromDirectory("core/")
+        IncludeFromDirectory("classes/")
+        AddCSLuaFileFromDirectory("core/");
+        AddCSLuaFileFromDirectory("classes/");
+        
+    end
 
+    ExecuteIncludes()
 
 end
 
 if CLIENT then
         
+    
     local function IncludeFromDirectory(dir) 
         
-        local files_cl = file.Find("basewars/gamemode/" .. dir .. "*_cl.lua", "LUA");
-        local files_sh = file.Find("basewars/gamemode/" .. dir .. "*_sh.lua", "LUA");
+        local dirFiles, dirDirectories = file.Find("basewars/gamemode/" .. dir .. "*", "LUA");
        
-        for k, file in pairs(table.Add(files_cl, files_sh)) do
-            include(dir .. file)
+        for k, luaFile in pairs(dirFiles) do
+            if (string.match(luaFile, "_cl.lua$") or string.match(luaFile, "_sh.lua$")) then
+                include(dir .. luaFile)
+                --print(luaFile)
+            end
         end
+    
+        for k, dirFile in pairs(dirDirectories) do
+            IncludeFromDirectory(dir..dirFile.."/") 
+        end
+    
         
     end
     
     IncludeFromDirectory("core/");
     IncludeFromDirectory("classes/");
-    IncludeFromDirectory("classes/entities/"); 
     
 end

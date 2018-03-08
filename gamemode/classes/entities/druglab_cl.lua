@@ -1,10 +1,10 @@
-Object_MoneyPrinter = {};
-Object_MoneyPrinter.__index = Object_MoneyPrinter;
-GameObject:Register( "Object_MoneyPrinter", Object_MoneyPrinter)
-local Object = Object_MoneyPrinter;
+Object_DrugLab = {};
+Object_DrugLab.__index = Object_DrugLab;
+GameObject:Register( "Object_DrugLab", Object_DrugLab)
+local Object = Object_DrugLab;
 
 --//
---//	Constructs a money printer object.
+--//	Constructs a drug lab object.
 --//
 function Object:new( metaInstance )
 	return GameObject:new(Object, metaInstance);
@@ -25,8 +25,15 @@ function Object:Draw()
 
 		surface.SetDrawColor(255, 255, 255, 255);
 		draw.DrawText("Type: " .. tostring(self.entityType), "TheDefaultSettings", 0, 100, Color(255,255,255), TEXT_ALIGN_CENTER);
-		draw.DrawText("Balance: " .. tostring(self.balance), "TheDefaultSettings", 0, 200, Color(255,255,255), TEXT_ALIGN_CENTER);
+		--draw.DrawText("Balance: " .. tostring(self.balance), "TheDefaultSettings", 0, 200, Color(255,255,255), TEXT_ALIGN_CENTER);
 		
 	cam.End3D2D();
 
+end
+
+--//
+--// Garbage collects the object.
+--//
+function Object:Remove() 
+	GameObject:RemoveGameObject(self);
 end

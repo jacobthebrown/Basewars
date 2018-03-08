@@ -1,58 +1,36 @@
-Obj_WeaponFactory = Obj_WeaponFactory or {};
-Obj_WeaponFactory.__index = Obj_WeaponFactory;
+Object_WeaponFactory = {};
+Object_WeaponFactory.__index = Object_WeaponFactory;
+GameObject:Register( "Object_WeaponFactory", Object_WeaponFactory)
+local Object = Object_WeaponFactory;
 
 --//
---//	Constructs a money printer object.
+--//	Constructs a weapon factory object.
 --//
-function Obj_WeaponFactory:new( ply, position, maxBalance, printAmount )
+function Object:new( ply, position, maxBalance, printAmount )
 	
 	local metaProperties = {
-		entityType = "obj_weaponfactory",
+		entityType = "Object_WeaponFactory",
 		propModel = "models/props_wasteland/laundry_washer003.mdl",
 		owner = ply or nil,
 		ent = nil
 	}
 	
-	return GameObject:new(Obj_WeaponFactory, metaProperties, ply, position);
+	return GameObject:new(Object, metaProperties, ply, position);
 end
 
 --//
 --//	The function given to the physical entity to be called on ENT:Use.
 --//
-function Obj_WeaponFactory:Use(ply, ent)	
-	
-	if (!ply:HasWeapon( "weapon_pistol" )) then
-        ply:Give("weapon_pistol");
-    else
-        
-    end
-    
+function Object:Use(ply, ent)
+	if (!ply:HasWeapon( "weapon_bw_pistol" )) then
+        ply:Give("weapon_bw_pistol");
+	end
 end
 
 --//
---// Garbage collect money printer.
---// TODO: Make sure garbage collection is actually happening.
+--// Garbage collects the object.
 --//
-function Obj_WeaponFactory:Remove() 
-	table.RemoveByValue( self.owner.gamedata.entities, self )
+function Object:Remove() 
+	GameObject:RemoveGameObject(self);
+	self.ent:Remove();
 end
-
-
---[[
---		
---		Console Command Functions.
---
---]]
-concommand.Add( "createWeaponFactory", function( ply, cmd, args ) 
-	
-    local trace = {};
-    trace.start = ply:EyePos();
-    trace.endpos = trace.start + ply:GetAimVector() * 85;
-    trace.filter = ply;
-    
-    local tr = util.TraceLine(trace);
-	local newPrinter = Obj_WeaponFactory:new(ply, tr.HitPos); 
-	
-	table.insert(ply.gamedata.entities, newPrinter)
-	
-end)

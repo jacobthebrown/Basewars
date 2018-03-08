@@ -21,7 +21,6 @@ function PlayerData:new( ply )
 	return metaPlayerData;
 
 end
-setmetatable( PlayerData, {__call = PlayerData.new } )
 
 --//
 --//    Set player's wealth.
@@ -30,6 +29,8 @@ function PlayerData:SetWealth(amount)
     
     if ( self.player:IsValid() && isnumber(amount) ) then
         self.wealth = amount;
+
+        self:SendPlayerData({ wealth = self.wealth });
     else
         print("PlayerData:RecieveMoney() - No player data exists, or money given");
     end
@@ -42,7 +43,7 @@ end
 function PlayerData:GiveWealth(amount)
     
     if ( self.player:IsValid() && isnumber(amount) ) then
-        self.wealth = self.wealth + amount;
+        self:SetWealth(self.wealth + amount);
     else
         print("PlayerData:RecieveMoney() - No player data exists, or money given");
     end
@@ -55,11 +56,20 @@ end
 function PlayerData:TakeWealth(amount)
     
     if ( self.player:IsValid() && isnumber(amount) ) then
-        self.wealth = self.wealth - amount;
+        self:SetWealth(self.wealth - amount);
     else
         print("PlayerData:RecieveMoney() - No player data exists, or money given");
     end
         
+end
+
+
+function PlayerData:SendPlayerData(tbl) 
+    
+	net.Start("PlayerData_Send");
+	net.WriteTable(tbl);
+	net.Send(self.player);
+	
 end
 
 --[[

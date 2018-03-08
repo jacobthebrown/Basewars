@@ -26,7 +26,7 @@ end
 
 function GM:PlayerSpawnEffect( ply ) 
 
-	return false;
+	return true;
 
 end
 
