@@ -11,8 +11,6 @@ function Object:new( ply, position, maxBalance, printAmount )
 	local metaInstance = {
 		entityType = "Object_DrugLab",
 		propModel = "models/props_lab/crematorcase.mdl",
-		owner = ply or nil,
-		ent = nil,
 		maxBalance = maxBalance or CONFIG_DefaultMaxBalance,
 		printAmount = printAmount or CONFIG_DefaultPrintAmount,
 		balance = 0,
@@ -50,14 +48,6 @@ function Object:Use(ply, ent)
 		self.lastDispensed = CurTime()
 		self.ent:EmitSound("buttons/button4.wav")
 	end
-end
-
---//
---// Garbage collects the object.
---//
-function Object:Remove() 
-	GameObject:RemoveGameObject(self);
-	self.ent:Remove();
 end
 
 ------------[[

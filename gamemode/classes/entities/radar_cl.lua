@@ -101,10 +101,3 @@ function draw.Circle( x, y, radius, seg )
 
 	surface.DrawPoly( cir )
 end
-
---//
---// Garbage collects the object.
---//
-function Object:Remove() 
-	GameObject:RemoveGameObject(self);
-end

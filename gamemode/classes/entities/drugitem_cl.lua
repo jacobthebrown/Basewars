@@ -18,10 +18,3 @@ function Object:PickupDrugItem( args )
 	LocalPlayer():EmitSound("items/smallmedkit1.wav");
     LocalPlayer():PrintMessage( HUD_PRINTTALK, "You pick up the drugs."); 
 end
-
---//
---// Garbage collects the object.
---//
-function Object:Remove() 
-	GameObject:RemoveGameObject(self);
-end

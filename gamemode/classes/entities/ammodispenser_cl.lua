@@ -27,10 +27,3 @@ function Object:Draw()
 		
 	cam.End3D2D()
 end
-
---//
---// Garbage collects the object.
---//
-function Object:Remove() 
-	GameObject:RemoveGameObject(self);
-end

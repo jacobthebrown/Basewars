@@ -12,8 +12,6 @@ function Object:new( ply, position, maxBalance, printAmount )
 	local metaInstance = {
 		entityType = "Object_AmmoDispenser",
 		propModel = "models/items/ammocrate_grenade.mdl",
-		owner = ply or nil,
-		ent = nil,
 		lastDispensed = 0,
 		dispenserRate = 1;
 	}
@@ -33,11 +31,4 @@ function Object:Use(ply, ent)
     	self.lastDispensed = currentTime;
     end
     
-end
---//
---// Garbage collects the object.
---//
-function Object:Remove() 
-	GameObject:RemoveGameObject(self);
-	self.ent:Remove();
 end

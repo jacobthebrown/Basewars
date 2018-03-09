@@ -11,8 +11,6 @@ function Object:new( ply, position, scanDuration )
 	local metaProperties = {
 		entityType = "Object_Radar",
 		propModel = "models/props_rooftop/roof_dish001.mdl",
-		owner = ply or nil,
-		ent = nil,
 		lastScanned = 0,
 		scanDuration = scanDuration or 10,
 		targetPlayer = nil
@@ -30,21 +28,13 @@ function Object:Use(ply, ent)
 end
 
 --//
---// Garbage collects the object.
---//
-function Object:Remove() 
-	GameObject:RemoveGameObject(self);
-	self.ent:Remove();
-end
-
---//
 --//	Reforms a scan on a target player.
 --//
 function Object:ScanPlayer(targetPlayer)
 	
 	print("Scanning Player")
 	
-	GameObject:TriggerEvent(self.ent, self, "ScanPlayer", { targetPlayer });
+	GameObject:TriggerEventGlobal(self.ent, self, "ScanPlayer", { targetPlayer });
 	
 	timer.Create( "Timer_RadarScan", self.scanDuration, 1, function() 
 		self.targetPlayer = nil;		

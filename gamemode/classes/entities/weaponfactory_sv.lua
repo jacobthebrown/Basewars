@@ -11,8 +11,6 @@ function Object:new( ply, position, maxBalance, printAmount )
 	local metaProperties = {
 		entityType = "Object_WeaponFactory",
 		propModel = "models/props_wasteland/laundry_washer003.mdl",
-		owner = ply or nil,
-		ent = nil
 	}
 	
 	return GameObject:new(Object, metaProperties, ply, position);
@@ -25,12 +23,4 @@ function Object:Use(ply, ent)
 	if (!ply:HasWeapon( "weapon_bw_pistol" )) then
         ply:Give("weapon_bw_pistol");
 	end
-end
-
---//
---// Garbage collects the object.
---//
-function Object:Remove() 
-	GameObject:RemoveGameObject(self);
-	self.ent:Remove();
 end

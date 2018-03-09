@@ -31,11 +31,3 @@ function Object:Use(ply, ent)
     end
     
 end
-
---//
---// Garbage collects the object.
---//
-function Object:Remove() 
-	GameObject:RemoveGameObject(self);
-	self.ent:Remove();
-end

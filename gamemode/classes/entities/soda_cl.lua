@@ -17,10 +17,3 @@ function Object:DrinkSoda( args )
 	LocalPlayer():EmitSound("physics/metal/soda_can_impact_hard2.wav");
     LocalPlayer():PrintMessage( HUD_PRINTTALK, "You drink the can of soda."); 
 end
-
---//
---// Garbage collects the object.
---//
-function Object:Remove() 
-	GameObject:RemoveGameObject(self);
-end

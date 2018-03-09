@@ -38,10 +38,3 @@ function Object:Draw()
 
 	
 end
-
---//
---// Garbage collects the object.
---//
-function Object:Remove() 
-	GameObject:RemoveGameObject(self);
-end

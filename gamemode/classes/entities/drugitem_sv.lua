@@ -10,8 +10,6 @@ function Object:new( ply, pos, angle )
 	local metaProperties = {
 		entityType = "Object_DrugItem",
 		propModel = "models/props_c17/trappropeller_lever.mdl",
-		owner = ply or nil,
-		ent = nil,
 		used = false;
 	}
 	
@@ -29,12 +27,4 @@ function Object:Use(ply, ent)
 		
     end
     
-end
-
---//
---// Garbage collects the object.
---//
-function Object:Remove() 
-	GameObject:RemoveGameObject(self);
-	self.ent:Remove();
 end

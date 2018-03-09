@@ -12,8 +12,6 @@ function Object:new( ply, pos )
 		entityType = "Object_VendingMachine",
 		propModel = "models/props_interiors/VendingMachineSoda01a.mdl",
 		lastDispensed = 0,
-		owner = ply or nil,
-		ent = nil
 	}
 	
 	return GameObject:new(Object, metaProperties, ply, pos);
@@ -33,12 +31,4 @@ function Object:Use(ply, ent)
     	
     end
     
-end
-
---//
---// Garbage collects the object.
---//
-function Object:Remove() 
-	GameObject:RemoveGameObject(self);
-	self.ent:Remove();
 end
