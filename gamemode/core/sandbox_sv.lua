@@ -69,3 +69,9 @@ function GM:PlayerSpawnVehicle( ply )
 	return true;
 
 end
+
+function GM:OnPhysgunReload( physgun, ply )
+	
+	return false;	
+	
+end

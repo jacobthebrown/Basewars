@@ -1,0 +1,32 @@
+probably precache model
+
+hook.Add( "PostDrawOpaqueRenderables", "MeshLibTest", function()
+
+    for k, v in pairs (ents.GetAll()) do
+        
+        if (v:GetClass() != "prop_physics" || v:GetModel() == "" || !v:GetModel()) then
+           continue 
+        end
+        
+        local phys = v:GetPhysicsObject();
+        
+        if (!phys:IsValid()) then
+            continue 
+        end
+        
+        print(phys)
+        --
+        --local verts = phys:GetMesh();
+        --
+        --render.SetMaterial( mat ) -- Apply the material
+    	--mesh.Begin( MATERIAL_TRIANGLES, 1 ) -- Begin writing to the dynamic mesh
+    	--for i = 1, #verts do
+    	--	mesh.Position( verts[i].pos ) -- Set the position
+    	--	mesh.TexCoord( 0, verts[i].u, verts[i].v ) -- Set the texture UV coordinates
+    	--	mesh.AdvanceVertex() -- Write the vertex
+    	--end
+    	--mesh.End() -- Finish writing the mesh and draw it
+    end
+
+
+end )

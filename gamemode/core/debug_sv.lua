@@ -1,5 +1,8 @@
 BW.debug = {};
-BW.debug.enums = {network =  {low = false, medium = false, high = true}};
+BW.debug.enums = {
+	network =  {low = false, medium = true, high = true},
+	object = {low = true, medium = true, high = true}
+};
 local MODULE = BW.debug;
 
 

@@ -103,6 +103,7 @@ function GameObject:newProp(metaObject, propObj, ent, ply)
 	propObj:SetOwner(ply);
 	propObj.health = propObj:GetMaxHealth();
 	propObj.ent = ent;
+	ent:CallOnRemove( "RemoveGameObject", function( ent ) if (ent.gamedata) then ent.gamedata:Remove() end end )
 	
 	-- Add Game Object to global list of entities. 
 	GameObject:AddGameObject(propObj);
@@ -124,6 +125,7 @@ function GameObject:newPlayer(metaObject, playerObj, ply)
 	
 	-- Create a clone of the metatable of the game object.
 	setmetatable( playerObj, metaObject );
+	GameObject.Cache[ply] = {};
 	playerObj:SetIndex(GameObject.IndexNumber);
 	GameObject.IndexNumber = GameObject.IndexNumber + 1;
 	
@@ -187,6 +189,10 @@ function GameObject:Register(objectType, metaObject)
 		
 		metaObject.OnTakeDamage = function(obj, dmginfo)
 	
+			if (dmginfo:GetDamageType() == DMG_CRUSH) then
+				return;
+			end
+	
 			local totalDamage = obj:GetHealth() - dmginfo:GetBaseDamage();
 
 			if (totalDamage <= 0) then
@@ -228,42 +234,35 @@ end
 --//
 --//	Sends GameData for a single game object to all clients.
 --//
-function GameObject:SendGameDataSingle(ply, obj)
+function GameObject:SendGameDataSingle(ply, object)
 	
-	BW.debug:PrintStatement( {"Sending Single Gamedata Message about: ", obj}, BW.debug.enums.network.medium)
+	local entityIndex = ply:EntIndex();
+	local newCachedObj = GameObject:TrimCacheForNetworking(ply, object);
+
+	if (table.Count( newCachedObj ) != 0) then
+		
+		table.CopyFromTo( object, GameObject.Cache[ply][object:GetIndex()] )
+		
+		uncachedObjectData = uncachedObjectData or {};
+		uncachedObjectData[entityIndex] = {entIndex = entityIndex, gamedata = newCachedObj};
+	else
+		return;
+	end	
 	
-	if (obj.player) then
+	BW.debug:PrintStatement( {"Sending Single Gamedata Message about: ", newCachedObj}, BW.debug.enums.network.medium)
+	
+	if (object.player) then
 		net.Start("GameObject_SendGameDataSingle");
-		net.WriteUInt(obj.player:EntIndex(), 8);
-		net.WriteTable(obj);
-		net.Send(ply);	
+		net.WriteUInt(object.player:EntIndex(), 8);
+		net.WriteTable(newCachedObj);
+		net.Send(ply);
 		return;
 	end
 	
 	net.Start("GameObject_SendGameDataSingle");
-	net.WriteUInt(obj.ent:EntIndex(), 8);
-	net.WriteTable(obj);
+	net.WriteUInt(object.ent:EntIndex(), 8);
+	net.WriteTable(newCachedObj);
 	net.Send(ply);
-end
-
-
-function table.MergeUncached( dest, source, cache )
-
-	for k_source, v_source in pairs(source) do
-		if ( type( v_source ) == "table" && type( cache[ k_source ] ) == "table") then
-			dest[k] = {};
-			table.MergeUncached( dest[k], v_source, cache[k] )
-		else
-			if (cache[k_source] == v_source) then
-				
-			else
-				dest[ k_source ] = v_source
-
-			end
-		end
-	end
-	return dest
-
 end
 
 --//
@@ -273,22 +272,20 @@ function GameObject:SendGameDataMany(ply, objs)
 	
 	local uncachedObjectData = nil;
 	
-	for k, v in pairs (objs) do
+	for k, indexAndobject in pairs (objs) do
 
-		local entIndex = v.gamedata.ent:EntIndex();		
-		local gameObjectID = v.gamedata:GetIndex();
-		local oldCachedObj = GameObject.Cache[gameObjectID];
-		local newCachedObj = {};
-		GameObject.Cache[ply] = GameObject.Cache[ply] or {};
-		GameObject.Cache[ply][gameObjectID] = GameObject.Cache[ply][gameObjectID] or {};
-		
-		table.MergeUncached( newCachedObj, v.gamedata, oldCachedObj or {} )
-		table.CopyFromTo( v.gamedata, GameObject.Cache[ply][gameObjectID] )
+		local object = indexAndobject.gamedata;
+		local entityIndex = object.ent:EntIndex();
+		local newCachedObj = GameObject:TrimCacheForNetworking(ply, object)
 
 		if (table.Count( newCachedObj ) != 0) then
+			
+			table.CopyFromTo( object, GameObject.Cache[ply][object:GetIndex()] )
+			
 			uncachedObjectData = uncachedObjectData or {};
-			uncachedObjectData[entIndex] = {entIndex = entIndex, gamedata = newCachedObj};
-		end
+			uncachedObjectData[entityIndex] = {entIndex = entityIndex, gamedata = newCachedObj};
+		end	
+
 	end
 
 	if (uncachedObjectData == nil) then
@@ -301,6 +298,24 @@ function GameObject:SendGameDataMany(ply, objs)
 	net.Start("GameObject_SendGameDataMany");
 	net.WriteTable(uncachedObjectData);
 	net.Send(ply);
+end
+
+function GameObject:TrimCacheForNetworking(ply, obj)
+
+		local gameObjectID = obj:GetIndex();
+		local trimmedCache = {};
+		
+		if (!GameObject.Cache[ply]) then
+			GameObject.Cache[ply] = {};
+			GameObject.Cache[ply][gameObjectID] = {};
+		elseif (!GameObject.Cache[ply][gameObjectID]) then
+			GameObject.Cache[ply][gameObjectID] = {};
+		end
+		
+		table.MergeUncached( trimmedCache, obj, GameObject.Cache[ply][gameObjectID] )
+
+		return trimmedCache;
+
 end
 
 --//
@@ -391,42 +406,7 @@ end
 --//////////////////////////////////////////////////////////////////////////////
 --///Console Command Functions-------------------------------------------------/
 --//////////////////////////////////////////////////////////////////////////////
-concommand.Add( "create", function( ply, cmd, args ) 
-	
-	local metaObject = GameObject:GetMetaObject("Object_" .. args[1]);
-	
-	if (!metaObject) then
-		return 
-	end
 
-	-- If the owner of the game object should only have one game object of its type.
-	if (metaObject.FLAGS && metaObject.FLAGS.UNIQUE) then
-		for k, v in pairs (GameObject:GetAllGameObjects()) do
-			if (v.entityType == "Object_" .. args[1] && v.owner == ply:SteamID64()) then v:Remove(); end
-		end
-	end
-
-    local trace = {};
-    trace.start = ply:EyePos();
-    trace.endpos = trace.start + ply:GetAimVector() * 85;
-    trace.filter = ply;
-    
-    local tr = util.TraceLine(trace);
-	local newObject = metaObject:new(ply, tr.HitPos);
-	
-	GameObject:SendGameDataSingle(ply, newObject);
-	
-end)
- 
-concommand.Add( "upgrade", function( ply, cmd, args ) 
-
-	local ent = ply:GetEyeTrace().Entity;
-
-	if (ent.gamedata && ent.gamedata.SkillTree) then
-		ent.gamedata:Upgrade();
-	end
-	
-end)
  
 --//////////////////////////////////////////////////////////////////////////////
 --///GameObject Hooks----------------------------------------------------------/

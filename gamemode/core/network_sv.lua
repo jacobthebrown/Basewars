@@ -53,7 +53,7 @@ function MODULE:InitializeUpdatePlayerTimer()
 	timer.Create( "Timer_UpdatePlayers", 0.1, 0, function() 
 	
 		for key, ply in pairs (player.GetAll()) do
-			if (ply && ply.gamedata) then
+			if (ply && ply:Alive() && ply.gamedata) then
 				GameObject:SendGameDataSingle(ply, ply.gamedata);
 			end
 		end

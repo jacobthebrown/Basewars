@@ -32,8 +32,11 @@ function Object:new( ply )
 
 	local metaPlayer = {
         wealth = 0,
-        player = ply
+        player = ply,
+        settings = {};
 	}
+
+    table.CopyFromTo(Object.settings, metaPlayer.settings);
 
 	return GameObject:newPlayer(Object, metaPlayer, ply);
 end

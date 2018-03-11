@@ -36,3 +36,6 @@ end )
 --t_Model:SetParent( LocalPlayer() )
 --t_Model:Spawn()
 
+
+local mat = Material( "editor/wireframe" ) -- The material ( a wireframe )
+
