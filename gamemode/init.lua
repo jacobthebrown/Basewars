@@ -1,6 +1,6 @@
-basewars = basewars or {};
-basewars.util = basewars.util or {};
-basewars.timers = basewars.timers or {};
+BW = BW or {};
+BW.util = BW.util or {};
+BW.timers = BW.timers or {};
 
 AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")

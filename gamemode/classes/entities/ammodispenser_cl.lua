@@ -22,8 +22,6 @@ function Object:Draw()
 	local angle = self.ent:GetAngles()
 	
 	cam.Start3D2D(self.ent:LocalToWorld(vectorOffset), self.ent:LocalToWorldAngles(angleOffset), scale)
-	
 		draw.DrawText("Type: " .. tostring(self.entityType), "TheDefaultSettings", 0,100, Color(255,255,255), TEXT_ALIGN_CENTER)
-		
 	cam.End3D2D()
 end

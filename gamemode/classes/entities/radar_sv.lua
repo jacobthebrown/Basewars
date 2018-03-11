@@ -1,7 +1,10 @@
 Object_Radar = {};
 Object_Radar.__index = Object_Radar;
+Object_Radar.members = {"lastScanned", "scanDuration", "targetPlayer"};
 GameObject:Register( "Object_Radar", Object_Radar)
 local Object = Object_Radar;
+
+Object.FLAGS = { UNIQUE = true };
 
 --//
 --//	Constructs a radar object for the server.
@@ -10,21 +13,13 @@ function Object:new( ply, position, scanDuration )
 	
 	local metaProperties = {
 		entityType = "Object_Radar",
-		propModel = "models/props_rooftop/roof_dish001.mdl",
+		propModel = "models/props_wasteland/laundry_basket001.mdl",
 		lastScanned = 0,
 		scanDuration = scanDuration or 10,
 		targetPlayer = nil
-		
 	}
 	
-	return GameObject:new(Object, metaProperties, ply, position);
-end
-
---//
---//	The function given to the physical entity to be called on ENT:Use.
---//
-function Object:Use(ply, ent)	
-    
+	return GameObject:new(Object, metaProperties, ply, position, Angle(0,0,0));
 end
 
 --//
@@ -32,11 +27,16 @@ end
 --//
 function Object:ScanPlayer(targetPlayer)
 	
-	print("Scanning Player")
 	
-	GameObject:TriggerEventGlobal(self.ent, self, "ScanPlayer", { targetPlayer });
+	if (CurTime() <= self:GetLastScanned() + self:GetScanDuration()) then
+		return;
+	end
 	
-	timer.Create( "Timer_RadarScan", self.scanDuration, 1, function() 
+	self:SetLastScanned(CurTime());
+
+	GameObject:TriggerEventGlobal(self, "ScanPlayer", { targetPlayer });
+	
+	timer.Create( "Timer_RadarScan", self:GetScanDuration(), 1, function() 
 		self.targetPlayer = nil;		
 	end)
 end
@@ -46,19 +46,20 @@ end
 --		Console Command Functions.
 --
 --]]
-local scanningRadars = {};
 concommand.Add( "radar_Scan", function( ply, cmd, args ) 
 	
 	local gameObject = nil;
 
+	PrintTable(GameObject:GetAllGameObjects())
+
 	for k, v in pairs (GameObject:GetAllGameObjects()) do
-		if (v.entityType == "Object_Radar" && v.owner == ply) then
+		if (v.entityType == "Object_Radar" && v:GetOwner() == ply) then
 			gameObject = v;
 			break;
 		end
 	end
 	
-	if (gameObject == nil) then
+	if (!gameObject) then
 		return;
 	end
 	

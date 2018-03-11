@@ -1,21 +1,82 @@
-function InitializePlayerData(ply)
-	print("init spawn")
-	ply.gamedata = PlayerData:new(ply);
-end
-hook.Add( "PlayerInitialSpawn", "Hook_InitializePlayerData", InitializePlayerData )
+BW.hooks = {};
+local MODULE = BW.hooks;
 
-function CleanUpPlayerData(ply) 
+
+--//
+--//	TODO
+--//
+function MODULE.InitializePlayerData(ply)
+	ply.gamedata = Object_Player:new(ply);
+	-GameObject.Cache[ply] = nil;
+end
+hook.Add( "PlayerInitialSpawn", "PlayerInitialSpawn_InitializePlayerData", MODULE.InitializePlayerData )
+
+--//
+--//	TODO
+--//
+function MODULE.RemovePlayerData(ply) 
+	ply.gamedata:Remove();
+end
+hook.Add("PlayerDisconnected", "PlayerDisconnected_RemovePlayerData", MODULE.RemovePlayerData )
+
+--//
+--//	TODO
+--//
+function MODULE.OnPhysgunPickup(ply, ent)
+
+	if (!ent.gamedata) then	
+		return true;
+	elseif (!ply || !ply.gamedata || ent:IsPlayer()) then
+		return false;
+	end
 	
+	local entityOwner = ent.gamedata:GetOwner();
+	
+	if (ply == entityOwner) then
+		return true;	
+	end
+	
+	if (entityOwner.gamedata.settings.FRIENDS[ply]) then
+		return true;
+	end
+	
+	return false
+
 end
-hook.Add("PlayerDisconnected", "Hook_CleanUpPlayerData", CleanUpPlayerData)
+hook.Add("PhysgunPickup", "PhysgunPickup_OnPhysgunPickup", MODULE.OnPhysgunPickup )
 
--- Make physgun have a range
-function OnPhysgunPickup( ply, ent )
-
+--//
+--//	TODO
+--//
+function MODULE.OnToolgunFire( ply, trace, tool )
+	
+	local ent = trace.Entity;	
+	
+	if (!ent.gamedata) then	
+		return true;
+	elseif (!ply || !ply.gamedata || ent:IsPlayer()) then
+		return false;
+	end
+	
+	local entityOwner = ent.gamedata:GetOwner();
+	
+	if (ply == entityOwner) then
+		return true;	
+	end
+	
+	if (entityOwner.gamedata.settings.FRIENDS[ply]) then
+		return true;
+	end
+	
+	return false
+		
 end
-hook.Add("PhysgunPickup", "Hook_OnPhysgunPickup", OnPhysgunPickup)
+hook.Add("CanTool", "CanTool_OnToolgunFire", MODULE.OnToolgunFire )
 
-function OnPhysgunDrop( ply, ent )
+--//
+--//	TODO
+--//
+function MODULE.OnPhysgunDrop( ply, ent )
 	
 	local phys = ent:GetPhysicsObject();
  
@@ -24,14 +85,21 @@ function OnPhysgunDrop( ply, ent )
 	end
 	
 end
-hook.Add("PhysgunDrop", "Hook_OnPhysgunDrop", OnPhysgunDrop)
+hook.Add("PhysgunDrop", "PhysgunDrop_OnPhysgunDrop", MODULE.OnPhysgunDrop )
 
-function OnPlayerSpawnObject(ply, model, ent)
-		
-	if (ent == nil) then
+--//
+--//	TODO
+--//
+function MODULE.OnPlayerSpawnObject(ply, model, ent)
+	
+	if (!ent) then
 		return;
 	end
 	
+	if (ent:GetClass() == "prop_physics") then
+		ent.gamedata = Object_Prop:new(ply, ent);
+	end
+	
 	local phys = ent:GetPhysicsObject();
  
 	if phys and phys:IsValid() then
@@ -39,59 +107,4 @@ function OnPlayerSpawnObject(ply, model, ent)
 	end
 	
 end
-hook.Add("PlayerSpawnedProp", "Hook_OnPlayerSpawnObject", OnPlayerSpawnObject)
-
-local function minVector(vec1, vec2)
-	
-	local zeroVector = Vector(0,0,0);
-	
-	if (zeroVector:DistToSqr(vec1) < zeroVector:DistToSqr(vec2) ) then
-		return vec1;
-	else
-		return vec2;
-	end
-	
-end
-
-local function maxVector(vec1, vec2)
-	
-	local zeroVector = Vector(0,0,0);
-	
-	if (zeroVector:DistToSqr(vec1) > zeroVector:DistToSqr(vec2) ) then
-		return vec1;
-	else
-		return vec2;
-	end
-	
-end
-
-function SafeZoneCheck(ply)
-		
-	for k, v in pairs (ents.GetAll()) do
-		
-		if (v.gamedata == nil || v.gamedata.entityType != "Object_SafeZone") then
-			continue;	
-		end
-
-		
-		local minVectorLocal = v:OBBMins() + Vector(-200,-200,0);
-		local maxVectorLocal = v:OBBMaxs() + Vector(200,200,0);
-		local absolutePos1 = v:LocalToWorld(minVectorLocal);
-		local absolutePos2 = v:LocalToWorld(maxVectorLocal);
-		
-		local minPos = minVector(absolutePos1, absolutePos2);
-		local maxPos = maxVector(absolutePos1, absolutePos2);
-		
-		local nope = false;
-		for k, v in pairs (ents.FindInBox( minPos, maxPos )) do
-			
-			if (v == ply) then
-				return false;
-			end
-		end
-	end
-	
-	
-end
-hook.Add("PlayerShouldTakeDamage", "Hook_SafeZoneCheck", SafeZoneCheck)
-
+hook.Add("PlayerSpawnedProp", "Hook_OnPlayerSpawnObject", MODULE.OnPlayerSpawnObject )

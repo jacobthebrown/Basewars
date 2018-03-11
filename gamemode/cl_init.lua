@@ -1,5 +1,5 @@
-basewars = basewars or {};
-basewars.util = basewars.util or {};
+BW = BW or {};
+BW.util = BW.util or {};
 
 include("shared.lua")
 include("includes.lua")

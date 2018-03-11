@@ -12,17 +12,15 @@ end
 
 function GM:PlayerSpawnEffect( ply ) 
 
-	return false;
+	return true;
 
 end
-
 
 function GM:PlayerSpawnNPC( ply ) 
 
-	return false;
+	return true;
 
 end
-
 
 function GM:PlayerSpawnEffect( ply ) 
 
@@ -50,7 +48,7 @@ end
 
 function GM:PlayerSpawnRagdoll( ply ) 
 
-	return false;
+	return true;
 
 end
 
@@ -62,20 +60,12 @@ end
 
 function GM:PlayerSpawnSWEP( ply ) 
 
-	return false;
+	return true;
 
 end
 
 function GM:PlayerSpawnVehicle( ply ) 
 
-	return false;
+	return true;
 
 end
-
--- Shortcuts for (super)admin only things.
---local IsAdmin = function(_, client) return client:IsAdmin() end
-
--- Set the gamemode hooks to the appropriate shortcuts.
---GM.PlayerGiveSWEP = IsAdmin
---GM.PlayerSpawnEffect = IsAdmin
---GM.PlayerSpawnSENT = IsAdmin

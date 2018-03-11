@@ -1,22 +1,32 @@
-function InitializeNetworkStrings()
+BW.network = {};
+local MODULE = BW.network;
+
+--//
+--//	TODO
+--//
+function MODULE:InitializeNetworkStrings()
 	util.AddNetworkString("GameObject_SendGameDataSingle");
 	util.AddNetworkString("GameObject_SendGameDataMany");
 	util.AddNetworkString("GameObject_SendTriggerEvent")
-	util.AddNetworkString("PlayerData_Send")
 
 end
-hook.Add( "Initialize", "Hook_InitializeNetworkStrings", InitializeNetworkStrings )
+hook.Add("Initialize", "Initialize_InitializeNetworkStrings", MODULE.InitializeNetworkStrings)
 
-
-
-local function CreateUpdateGameObjectTimer()
-	timer.Create( "Timer_UpdateGameObjects", 0.1, 0, function() 
+--//
+--//	TODO
+--//
+function MODULE:InitializeUpdateGameObjectsTimer()
+	
+	if (timer.Exists( "Timer_UpdateGameObjects" )) then
+		timer.Remove( "Timer_UpdateGameObjects" )
+	end
+	
+	timer.Create( "Timer_UpdateGameObjects", 1, 0, function() 
 	
 		for key, ply in pairs (player.GetAll()) do
-			
 			local entitiesToUpdate = {};
 			for key_2, ent in pairs (ents.FindInSphere(ply:GetPos(), 512)) do
-				if (!ent:IsPlayer() && ent.gamedata != nil) then
+				if (ent && !ent:IsPlayer() && ent.gamedata != nil) then
 					table.insert(entitiesToUpdate, { entIndex = ent:EntIndex(), gamedata = ent.gamedata})
 				end
 			end
@@ -28,4 +38,26 @@ local function CreateUpdateGameObjectTimer()
 		end
 	end );
 end
-hook.Add( "PostGamemodeLoaded", "Init_CreateUpdateGameObjectTimer", CreateUpdateGameObjectTimer )
+hook.Add("OnReloaded", "OnReloaded_InitializeUpdateGameObjectsTimer", MODULE.InitializeUpdateGameObjectsTimer)
+hook.Add("PostGamemodeLoaded", "PostGamemodeLoaded_InitializeUpdateGameObjectsTimer", MODULE.InitializeUpdateGameObjectsTimer)
+
+--//
+--//	TODO
+--//
+function MODULE:InitializeUpdatePlayerTimer()
+	
+	if (timer.Exists( "Timer_UpdatePlayers" )) then
+		timer.Remove( "Timer_UpdatePlayers" )
+	end
+	
+	timer.Create( "Timer_UpdatePlayers", 0.1, 0, function() 
+	
+		for key, ply in pairs (player.GetAll()) do
+			if (ply && ply.gamedata) then
+				GameObject:SendGameDataSingle(ply, ply.gamedata);
+			end
+		end
+	end );
+end
+hook.Add("OnReloaded", "OnReloaded_Create", MODULE.InitializeUpdatePlayerTimer)
+hook.Add( "PostGamemodeLoaded", "Init_CreateUpdatePlayerTimer", MODULE.InitializeUpdatePlayerTimer )

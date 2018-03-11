@@ -13,7 +13,6 @@ end
 --//
 --//	Event: Triggered when the client picks up drugs.
 --//
-
 function Object:PickupDrugItem( args )
 	LocalPlayer():EmitSound("items/smallmedkit1.wav");
     LocalPlayer():PrintMessage( HUD_PRINTTALK, "You pick up the drugs."); 

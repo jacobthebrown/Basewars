@@ -1,0 +1,7 @@
+-- Shortcuts for (super)admin only things.
+--local IsAdmin = function(_, client) return client:IsAdmin() end
+
+-- Set the gamemode hooks to the appropriate shortcuts.
+--GM.PlayerGiveSWEP = IsAdmin
+--GM.PlayerSpawnEffect = IsAdmin
+--GM.PlayerSpawnSENT = IsAdmin

@@ -1,4 +1,12 @@
-GameObject = {};
+GameObject = GameObject or {};
+
+-- On LuaRefresh, We still want keep the hooks, gameobject list, but we want to refresh all the functions.
+for k, v in pairs (GameObject) do
+	if (isfunction(v)) then
+		GameObject[k] = nil;
+	end
+end
+
 GameObject.AllGameObjects = GameObject.AllGameObjects or {};
 GameObject.registry = GameObject.registry or {}; 
 GameObject.unloadedents = GameObject.unloadedents or {};
@@ -25,8 +33,48 @@ end
 --//
 --//	Registers the meta table of the object in the registry.
 --//
-function GameObject:Register(ObjectType, MetaObject)
-	GameObject.registry[ObjectType] = MetaObject;
+function GameObject:Register(objectType, metaObject)
+
+	metaObject.SetHealth = function(obj, value) obj.health = value; end
+	metaObject.GetHealth = function(obj) return obj.health; end
+	metaObject.SetMaxHealth = function(obj, value) obj.maxHealth = value; end
+	metaObject.GetMaxHealth = function(obj) return obj.maxHealth; end
+
+	metaObject.Remove = function(obj) GameObject:RemoveGameObject(obj); end
+	metaObject.SetOwner = function(obj, ply) 
+		
+		if (ply && isstring(ply)) then 
+			obj.owner = ply; return;
+		elseif (ply && ply:IsPlayer()) then 
+			obj.owner = ply:SteamID64(); return;
+		else 
+			obj.owner = ply; return;
+		end
+	end
+	metaObject.GetOwner = function(obj, returnType) 
+		if (obj.owner && returnType == "ent") then 
+			return player.GetBySteamID64(obj.owner);
+		elseif (obj.owner && returnType == "str") then 
+			return obj.owner;
+		else 
+
+			return player.GetBySteamID64(obj.owner);
+		end
+	end
+	
+	if (metaObject.members) then
+		for k, v in pairs (metaObject.members) do
+			local memberName = string.upper(string.sub( v, 1, 1))..string.sub(v,2);
+			local getFunction = "Get"..memberName;
+			local setFunction = "Set"..memberName;
+			
+			metaObject[getFunction] = function(obj) return obj[v]; end
+			metaObject[setFunction] = function(obj, newValue) obj[v] = newValue; end
+		end
+	end
+		
+	GameObject.registry[objectType] = metaObject;
+	
 end
 
 --//
@@ -50,6 +98,7 @@ function GameObject:FindAndCreateGameObject(ent, gamedata)
 
 	objectInstance.ent = ent;
 	ent.gamedata = objectInstance;
+	ent.Initialized = true;
 	return objectInstance;
 
 end
@@ -91,19 +140,22 @@ function GameObject:RecieveTriggerEvent()
 	
 	local ent = ents.GetByIndex(entIndex);
 	
+	PrintTable(args);
+	
 	if (args.FLAGS) then
 		-- If the entity has been removed by the time this event was triggered.
 		if (args.FLAGS.ENTREMOVED) then
-		    ent.gamedata = GameObject:FindAndCreateGameObject(ent, gamedata);
+		    gamedata = GameObject:FindAndCreateGameObject(ent, gamedata);
 			return gamedata[eventName](gamedata, args);
 		end
 	end
 	
 	-- If the entity doesn't exist for the client yet, we need to put it in the queue to load it.
-	if (!ent:IsValid() || ent.gamedata == nil) then
+	if (!ent:IsValid() || !ent.gamedata) then
 		table.insert(GameObject.unloadedevents, {FirstRequested = CurTime(), entIndex = entIndex, gamedata = gamedata, eventName = eventName, args = args})
 	else
 		table.Merge(ent.gamedata, gamedata);
+		ent.Initialized = true;
 		ent.gamedata[eventName](ent.gamedata, args);
 	end
 end 
@@ -125,18 +177,17 @@ function GameObject:RecieveGameData()
 	if (!ent:IsValid() || !ent.gamedata) then
 		table.insert(GameObject.unloadedents, {FirstRequested = CurTime(), entIndex = entIndex, gamedata = gamedata})
 	else
-		if (GameObject.registry[gamedata.entityType]) then
-			return;
-		end
-    	if (!ent.gamedata) then
+		if (GameObject.registry[gamedata.entityType] && !ent.gamedata) then
 
 			local MetaObject = GameObject.registry[gamedata.entityType];
 			local objectInstance = MetaObject:new(gamedata);
 
 	    	objectInstance.ent = ent;
 	    	ent.gamedata = objectInstance;
+	  		ent.Initialized = true;
 	    else
 			table.Merge(ent.gamedata, gamedata);
+		   	ent.Initialized = true;
 		end
 	end
 end 
@@ -166,8 +217,10 @@ function RecieveGameDataMany()
 		    	
 	    		objectInstance.ent = ent;
 	    		ent.gamedata = objectInstance;
+		    	ent.Initialized = true;
 		    else
 				table.Merge(ent.gamedata, gamedata);
+		    	ent.Initialized = true;
 			end
 		end
 	end
@@ -187,15 +240,17 @@ timer.Create( "LoadEnts", 1, 0, function()
 		local gamedata = v.gamedata;
 		
 		if (ent:IsValid() && !ent.gamedata) then
-
+			
 			GameObject.unloadedents[k] = nil;
 			
 	      	if (!ent.gamedata && GameObject.registry[v.gamedata.entityType]) then
 		    	ent.gamedata = GameObject:FindAndCreateGameObject(ent, gamedata);
 			else
+				ent.gamedata = ent.gamedata or {};
 				table.Merge(ent.gamedata, gamedata);
+				ent.Initialized = true;
 			end
-		elseif (!ent:IsValid() && v.FirstRequested + 1 < CurTime()) then
+		elseif (!ent:IsValid() && v.FirstRequested + 2 < CurTime()) then
 			GameObject.unloadedents[k] = nil;	
 		else  	
 			GameObject.unloadedents[k] = nil;
@@ -214,7 +269,7 @@ timer.Create( "LoadEvents", 1, 0, function()
 		local eventName = v.eventName;
 		local args = v.args;
 		
-		if (ent:IsValid() && ent.gamedata == nil) then
+		if (ent:IsValid() && !ent.gamedata) then
 			
 			GameObject.unloadedevents[k] = nil;
 			
@@ -223,6 +278,7 @@ timer.Create( "LoadEvents", 1, 0, function()
 		    	ent.gamedata[eventName](ent.gamedata, args);
 			else
 				table.Merge(ent.gamedata, gamedata);
+				ent.Initialized = true;
 				ent.gamedata[eventName](ent.gamedata, args);
 			end
 		elseif (v.FirstRequested + 1 < CurTime()) then
@@ -239,11 +295,22 @@ hook.Add( "PostDrawOpaqueRenderables", "GameObject_RenderAll", function()
 	
 	for k, v in pairs(ents.GetAll()) do
 		if (v.gamedata) then
-			if (v.gamedata.Draw && LocalPlayer():GetPos():DistToSqr(v:GetPos()) < 262144) then
+			if (v.gamedata.Draw && LocalPlayer():GetPos():DistToSqr(v:GetPos()) < 262144*10) then
 				v.gamedata:Draw();
 			end
 			if (v.gamedata.DrawGlobal) then
 				v.gamedata:DrawGlobal();
+			end
+		end
+	end
+end )
+
+hook.Add( "HUDPaint", "GameObject_RenderHUD", function()
+	
+	for k, v in pairs(ents.GetAll()) do
+		if (v.gamedata) then
+			if (v.gamedata.DrawHUD && v.gamedata:GetOwner() == LocalPlayer()) then
+				v.gamedata:DrawHUD();
 			end
 		end
 	end

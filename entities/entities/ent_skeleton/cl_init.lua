@@ -2,8 +2,11 @@ DEFINE_BASECLASS("base_gmodentity")
 
 ENT.timeDelay = 0;
 
+ENT.Initalized = false;
+
 function ENT:Initialize()
 	self.gamedata = nil;
+	self.Initalized = false;
 end
 
 function ENT:Draw()
@@ -11,5 +14,7 @@ function ENT:Draw()
 end
 
 function ENT:OnRemove()
-	self.gamedata:Remove();
+	if (self.Initalized && (self.gamedata.FLAGS || self.gamedata.FLAGS.ENTREMOVED) ) then
+		self.gamedata:Remove();
+	end
 end

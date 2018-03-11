@@ -1,40 +1,62 @@
-Object_VendingMachine = {};
-Object_VendingMachine.__index = Object_VendingMachine;
-GameObject:Register( "Object_VendingMachine", Object_VendingMachine)
-local Object = Object_VendingMachine;
+Object_SpawnPoint = {};
+Object_SpawnPoint.__index = Object_SpawnPoint;
+GameObject:Register( "Object_SpawnPoint", Object_SpawnPoint)
+local Object = Object_SpawnPoint;
 
 --//
 --//	Constructs a vending machine object.
 --//
 function Object:new( metaInstance )
+	metaInstance.spawning = metaInstance.spawning or false;
+	metaInstance.spawnDuration = metaInstance.spawnDuration or 5;
+	
 	return GameObject:new(Object, metaInstance);
 end
 
 --//
---//	Function for rendering the object to the client.
 --//
-function Object:Draw()
+--//
+function Object:OnOwnerSpawn()
 
-	local vectorOffset = Vector(21,0,10)
-	local angleOffset = Angle(0,90,90)
-	local scale = 0.05 -- scale
-	
-	local angle = self.ent:GetAngles()
-	
-	local width = math.abs(self.ent:OBBMins().x) + self.ent:OBBMaxs().x;
-	
-	cam.Start3D2D(self.ent:LocalToWorld(vectorOffset + Vector(-width/2,0,75)), Angle(0,180 + (180 * CurTime()) % 360, 90) , .1);
-	
-		draw.DrawText("Free Soda!", "TheDefaultSettings", 5, 5, Color(0,0,0), TEXT_ALIGN_CENTER)
-		draw.DrawText("Free Soda!", "TheDefaultSettings", 0, 0, Color(255,255,255), TEXT_ALIGN_CENTER)
-		
-	cam.End3D2D();
-	cam.Start3D2D(self.ent:LocalToWorld(vectorOffset + Vector(-width/2,0,75)), Angle(0, (180 * CurTime()) % 360,90) , .1);
-	
-		draw.DrawText("Free Soda!", "TheDefaultSettings", 5, 5, Color(0,0,0), TEXT_ALIGN_CENTER)
-		draw.DrawText("Free Soda!", "TheDefaultSettings", 0, 0, Color(255,255,255), TEXT_ALIGN_CENTER)
-		
-	cam.End3D2D();
+	local ply = LocalPlayer();
 
+	if (LocalPlayer() == self:GetOwner()) then
+		EmitSound( "ambient/levels/citadel/portal_open1_adpcm.wav", ply:GetPos(), ply:EntIndex(), CHAN_AUTO, 1, 120, 0, 50 )
+		self.spawning = true;
+	end
+
+	--EmitSound( "ambient/levels/citadel/portal_open1_adpcm.wav", ply:GetPos(), ply:EntIndex(), CHAN_AUTO, 1, 120, 0, 100 )
+	
+	timer.Create( "Timer_SpawnEffectEnd", self.spawnDuration, 1, function() 
+		self.spawning = false;		
+	end)
+
+end
+
+--//
+--//
+--//
+function Object:OnOwnerSpawnGlobal()
+
+	EmitSound( Sound("ambient/levels/citadel/portal_open1_adpcm.wav"), self.ent:GetPos(), self.ent:EntIndex(), CHAN_AUTO, 1, 75, 0, 50 );
 	
 end
+
+local clientside_Funnel = nil;
+local clientside_Darkness = nil;
+function Object:DrawHUD()
+	
+	if (!self.spawning || LocalPlayer():Alive()) then
+		return;
+	end
+	
+	--render.Model( {model="models/effects/portalrift.mdl", pos=Vector(ScrW()/2,ScrH()/2,-100), angle=Angle(0,270,0)}, clientside_Darkness )	
+	--render.Model( {model="models/effects/portalfunnel.mdl", pos=Vector(ScrW()/2,ScrH()/2,-100)}, clientside_Funnel )
+	
+	DrawMaterialOverlay( "models/props_c17/fisheyelens", -0.06 )
+	DrawMaterialOverlay( "effects/tp_eyefx/tpeye", -0.06 )
+	DrawMaterialOverlay( "effects/tp_eyefx/tpeye2", -0.06 )
+	DrawMaterialOverlay( "effects/tp_eyefx/tpeye3", -0.06 )
+
+end
+

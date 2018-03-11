@@ -1,6 +1,7 @@
-Object_AmmoDispenser = Object_AmmoDispenser or {};
+Object_AmmoDispenser = {};
 Object_AmmoDispenser.__index = Object_AmmoDispenser;
-GameObject:Register( "Object_AmmoDispenser", Object_AmmoDispenser)
+Object_AmmoDispenser.members = {"lastDispensed", "dispenserRate"};
+GameObject:Register( "Object_AmmoDispenser", Object_AmmoDispenser);
 local Object = Object_AmmoDispenser;
 
 
@@ -26,9 +27,9 @@ function Object:Use(ply, ent)
 	
 	local currentTime = CurTime();
 	
-	if (currentTime >= self.lastDispensed + 1) then 
+	if (currentTime >= self:GetLastDispensed() + 1) then 
     	ply:GiveAmmo(10, ply:GetActiveWeapon():GetPrimaryAmmoType());
-    	self.lastDispensed = currentTime;
+    	self:SetLastDispensed(currentTime);
     end
     
 end
