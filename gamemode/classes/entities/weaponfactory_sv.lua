@@ -9,7 +9,6 @@ local Object = Object_WeaponFactory;
 function Object:new( ply, position, maxBalance, printAmount )
 	
 	local metaProperties = {
-		entityType = "Object_WeaponFactory",
 		propModel = "models/props_wasteland/laundry_washer003.mdl",
 	}
 	

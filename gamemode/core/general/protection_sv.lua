@@ -18,19 +18,19 @@ hook.Add("PlayerSpawnProp", "PlayerSpawnProp_OnPhysgunPickup", MODULE.PlayerSpaw
 --//
 function MODULE.OnPhysgunPickup(ply, ent)
 
-	if (!ent.gamedata) then	
-		return true;
-	elseif (!ply || !ply.gamedata || ent:IsPlayer()) then
+	if (!ent:GetObject()) then	
+		return false;
+	elseif (!ply || !ply:GetObject() || ent:IsPlayer()) then
 		return false;
 	end
 	
-	local entityOwner = ent.gamedata:GetOwner();
+	local entityOwner = ent:GetObject():GetOwner();
 	
 	if (ply == entityOwner) then
-		return true;	
+		return true;
 	end
 	
-	if (entityOwner.gamedata.settings.FRIENDS[ply]) then
+	if (entityOwner:GetObject().settings.FRIENDS[ply]) then
 		return true;
 	end
 	
@@ -46,19 +46,19 @@ function MODULE.OnToolgunFire( ply, trace, tool )
 	
 	local ent = trace.Entity;	
 	
-	if (!ent.gamedata) then	
-		return true;
-	elseif (!ply || !ply.gamedata || ent:IsPlayer()) then
+	if (ent:GetObject() && (ent:GetClass() != "prop_physics" || !ply || !ply:GetObject() || ent:IsPlayer()) ) then
 		return false;
+	elseif (!ent:GetObject()) then
+		return true;
 	end
 	
-	local entityOwner = ent.gamedata:GetOwner();
+	local entityOwner = ent:GetObject():GetOwner();
 	
 	if (ply == entityOwner) then
 		return true;	
 	end
 	
-	if (entityOwner.gamedata.settings.FRIENDS[ply]) then
+	if (entityOwner:GetObject().settings.FRIENDS[ply]) then
 		return true;
 	end
 	

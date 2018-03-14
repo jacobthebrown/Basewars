@@ -22,7 +22,6 @@ Object.SkillTree = {
 function Object:new( ply, position, maxBalance, printAmount )
 	
 	local metaInstance = {
-		entityType = "Object_MoneyPrinter",
 		propModel = "models/props_lab/servers.mdl",
 		maxHealth = 1000,
 		maxBalance = maxBalance or CONFIG_DefaultMaxBalance,
@@ -47,9 +46,10 @@ end
 function Object:Withdraw(ply, amount)
 	
 	local balance = self:GetBalance();
+	local plyobject = ply:GetObject();
 	
-    if (balance > 0 && ply:IsValid()) then
-        ply.gamedata:GiveWealth(math.min(amount, balance));
+    if (balance > 0 && ply:IsValid() && plyobject) then
+        plyobject:GiveWealth(math.min(amount, balance));
         self:SetBalance(balance - math.min(amount, balance));
     end
 end
@@ -84,11 +84,12 @@ function InitalizeGlobalTimers()
 
 		local updatedPrinters = {};
 		for k, v in pairs( GameObject:GetAllGameObjects() ) do
-			if (v.entityType == "Object_MoneyPrinter" && v.balance + v.printAmount <= v.maxBalance) then
+			if (v:GetType() == "Object_MoneyPrinter" && v:GetBalance() + v:GetPrintAmount() <= v:GetMaxBalance()) then
 				v:Print();
 			end
 		end
 	end )
 end
+hook.Add("OnReloaded", "OnReloaded_InitalizeGlobalTimers", InitalizeGlobalTimers)
 hook.Add("PostGamemodeLoaded", "Hook_InitalizeGlobalTimers", InitalizeGlobalTimers)
 

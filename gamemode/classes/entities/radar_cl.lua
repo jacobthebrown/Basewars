@@ -16,8 +16,9 @@ end
 --//
 function Object:ScanPlayer(args)
 	
-	self:SetTargetPlayer(args[1]);
-	local ply = self:GetTargetPlayer();
+
+	local ply = args[1];
+	self:SetTargetPlayer(ply);
 	
 	EmitSound( "vo/npc/male01/headsup02.wav", ply:GetPos(), ply:EntIndex(), CHAN_AUTO, 1, 120, 0, 100 )
 	EmitSound( Sound('npc/overwatch/cityvoice/f_confirmcivilstatus_1_spkr.wav'), LocalPlayer():GetPos(), LocalPlayer():EntIndex(), CHAN_AUTO, 1, 75, 0, 100 );
@@ -42,8 +43,8 @@ function Object:Draw()
 		displayText = "Not Scanning";
 	end
 
-	local vectorTranslation = self.ent:LocalToWorld(Vector(17, 0, 64));
-	local angleTranslation = self.ent:LocalToWorldAngles(Angle(0, 90, 90));
+	local vectorTranslation = self:GetEntity():LocalToWorld(Vector(17, 0, 64));
+	local angleTranslation = self:GetEntity():LocalToWorldAngles(Angle(0, 90, 90));
 	local scale = 0.1;
 	
 	cam.Start3D2D(vectorTranslation, angleTranslation, scale);

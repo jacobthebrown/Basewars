@@ -11,7 +11,7 @@ local Object = Object_AmmoDispenser;
 function Object:new( ply, position, maxBalance, printAmount )
 	
 	local metaInstance = {
-		entityType = "Object_AmmoDispenser",
+		objectType = "Object_AmmoDispenser",
 		propModel = "models/items/ammocrate_grenade.mdl",
 		lastDispensed = 0,
 		dispenserRate = 1;

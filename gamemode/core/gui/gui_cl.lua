@@ -1,5 +1,7 @@
 BW.gui = BW.gui or {};
 BW.gui.scoreboard = BW.gui.scoreboard or nil;
+BW.gui.shop = nil;
+local MODULE = BW.gui;
 
 
 surface.CreateFont( "TheDefaultSettings", {
@@ -73,25 +75,16 @@ end )
 
 function GM:ScoreboardHide()
 	
-	if (BW.gui.scoreboard == nil) then
-		ScoreBoardInitialize();
-	end
-	
-	BW.gui.scoreboard:SetMouseInputEnabled(false);
-	BW.gui.scoreboard:Hide();
+	MODULE.shop:SetMouseInputEnabled(false);
+	MODULE.shop:Hide();
 	gui.EnableScreenClicker(false);
 	
 end
 function GM:ScoreboardShow()
-	
-	local scoreboard = BW.gui.scoreboard;
-	
-	if (scoreboard == nil) then
-		ScoreBoardInitialize();
-	end
-	
-	BW.gui.scoreboard:Show();
-	BW.gui.scoreboard:SetMouseInputEnabled(true);
+
+	OpenShop();
+	MODULE.shop:Show();
+	MODULE.shop:SetMouseInputEnabled(true);
 	gui.EnableScreenClicker(true);
 	
 end
@@ -99,32 +92,72 @@ end
 -- SANITIZE THE QUEUE JAVASCRIPT
 function ScoreBoardInitialize()
 	
-	if (BW.gui.scoreboard != nil) then
-		BW.gui.scoreboard:Remove();
-		BW.gui.scoreboard = nil;
+	if (MODULE.scoreboard != nil) then
+		MODULE.scoreboard:Remove();
+		MODULE.scoreboard = nil;
 	end	
 	
 
-	BW.gui.scoreboard = vgui.Create( "DHTML" )
-	BW.gui.scoreboard:SetAllowLua( true )
-	BW.gui.scoreboard:SetSize( 512, 512 );
-	BW.gui.scoreboard:SetPos(ScrW()/2 - 256, ScrH()/2 - 256)
-	BW.gui.scoreboard:SetHTML( [[<meta http-equiv="refresh" content="0; url=https://preview.c9users.io/jacobthebrown/basewars/hello-world.html" />]] )
+	MODULE.scoreboard = vgui.Create( "DHTML" )
+	MODULE.scoreboard:SetAllowLua( true )
+	MODULE.scoreboard:SetSize( 512, 512 );
+	MODULE.scoreboard:SetPos(ScrW()/2 - 256, ScrH()/2 - 256)
+	MODULE.scoreboard:SetHTML( [[<meta http-equiv="refresh" content="0; url=https://preview.c9users.io/jacobthebrown/basewars/hello-world.html" />]] )
 	
-	function BW.gui.scoreboard:OnFinishLoadingDocument() 
+	function MODULE.scoreboard:OnFinishLoadingDocument() 
 		for k, v in pairs ( player.GetAll() ) do
-				self:QueueJavascript( string.format("createPlayer('%s', '%d', '%s')",v:GetName(), v:Ping(), v:EntIndex()) )
+				self:QueueJavascript( string.format("createPlayer('%s', '%s', '%d')", v:EntIndex(), v:GetName(), v:Ping()) )
 		end
 	end	
 	
 	local lastPaint = 0;
-	function BW.gui.scoreboard:Paint( w, h )
+	function MODULE.scoreboard:Paint( w, h )
 		if (CurTime() >= lastPaint + 1) then
 			lastPaint = CurTime();
 			for k, v in pairs ( player.GetAll() ) do 
-				self:QueueJavascript( string.format("createPlayer('%s', '%d', '%s')",v:GetName(), v:Ping(), v:EntIndex()) )
+				self:QueueJavascript( string.format("createPlayer('%s', '%s', '%d')", v:EntIndex(), v:GetName(), v:Ping()) )
 			end
 		end
 	end
+
+end
+
+-- SANITIZE THE QUEUE JAVASCRIPT
+function OpenShop()
+	
+
+	
+	if (MODULE.shop == nil) then
+		--MODULE.shop:Remove();
+		--MODULE.shop = nil;
+		MODULE.shop = vgui.Create( "DHTML" )
+		MODULE.shop:SetAllowLua( true )
+		MODULE.shop:SetSize( ScrW()/2, 512 );
+		MODULE.shop:SetPos(ScrW()/2 - ScrW()/4, ScrH()/2 - 256)
+		MODULE.shop:SetHTML( [[<meta http-equiv="refresh" content="0; url=http://107.22.133.201:8080/shop" />]] )
+	end	
+	
+	MODULE.shop:QueueJavascript("$('buybutton').focusout();")
+	
+
+	
+	function MODULE.shop:OnFinishLoadingDocument()
+
+	end	
+	
+	function MODULE.shop:Paint( w, h )
+	
+	
+	end
+
+	MODULE.shop:AddFunction( "game", "buy", function( objecttype )
+		LocalPlayer():ConCommand( "create "..objecttype )
+	end )
+
+	MODULE.shop:AddFunction( "game", "hasLoaded", function()
+		for k,v in pairs (GameObject.registry) do
+			MODULE.shop:QueueJavascript( string.format("CreateItem('%s', '%s', '%d')", v:GetType(), v:GetType(), 100) );
+		end
+	end )
 
 end

@@ -5,8 +5,7 @@ ENT.timeDelay = 0;
 ENT.Initalized = false;
 
 function ENT:Initialize()
-	self.gamedata = nil;
-	self.Initalized = false;
+
 end
 
 function ENT:Draw()
@@ -14,7 +13,10 @@ function ENT:Draw()
 end
 
 function ENT:OnRemove()
-	if (self.Initalized && (self.gamedata.FLAGS || self.gamedata.FLAGS.ENTREMOVED) ) then
-		self.gamedata:Remove();
+	
+	local gameobject = self:GetObject() or nil;
+	
+	if (gameobject || (gameobject && gameobject.FLAGS && gameobject.FLAGS.ENTREMOVED) ) then
+		gameobject:Remove();
 	end
 end

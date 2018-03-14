@@ -6,22 +6,16 @@ local Object = Object_SafeZone;
 --//
 --//	Constructs a money printer object.
 --//
-function Object:new( metaInstance )
-	return GameObject:new(Object, metaInstance);
-end
-
---//
---//	Function for rendering the object to the client.
---//
-function Object:Draw()
-
-	local vectorOffset = Vector(17,0,50)
-	local angleOffset = Angle(0,90,90)
-	local scale = 0.1
+function Object:new( ply, position, maxBalance, printAmount )
 	
-	local angle = self.ent:GetAngles()
-
+	local metaInstance = {
+		objectType = "Object_SafeZone",
+		propModel = "models/props_combine/combinethumper002.mdl",
+	}
+	
+	return GameObject:new(Object, metaInstance, ply, position);
 end
+
 
 local function minVector(vec1, vec2)
 	
@@ -47,27 +41,33 @@ local function maxVector(vec1, vec2)
 	
 end
 
-function Object:DrawGlobal()
-	
-	local width = math.abs(self.ent:OBBMins().x) + math.abs(self.ent:OBBMaxs().x);
-	local girth = math.abs(self.ent:OBBMins().y) + math.abs(self.ent:OBBMaxs().y);
-	
-	local minVectorLocal = self.ent:OBBMins() + Vector(-200,-200,0);
-	local maxVectorLocal = self.ent:OBBMaxs() + Vector(200,200,0);
+--Trigger to player (entering safe szone), send curtime to sync with draw.
+function SafeZoneCheck(ply)
+		
+	for k, v in pairs (ents.GetAll()) do
+		
+		if (!v.GetObject && v:GetObject():GetType() != "Object_SafeZone") then
+			continue;	
+		end
 
-	render.DrawWireframeBox( self.ent:LocalToWorld(Vector(0,0,0)) ,self.ent:GetAngles(), minVectorLocal, maxVectorLocal, Color(255,255,255,255), true )
+		
+		local minVectorLocal = v:OBBMins() + Vector(-200,-200,0);
+		local maxVectorLocal = v:OBBMaxs() + Vector(200,200,0);
+		local absolutePos1 = v:LocalToWorld(minVectorLocal);
+		local absolutePos2 = v:LocalToWorld(maxVectorLocal);
+		
+		local minPos = minVector(absolutePos1, absolutePos2);
+		local maxPos = maxVector(absolutePos1, absolutePos2);
+		
+		local nope = false;
+		for k, v in pairs (ents.FindInBox( minPos, maxPos )) do
+			
+			if (v == ply) then
+				return false;
+			end
+		end
+	end
 	
-	local absolutePos1 = self.ent:LocalToWorld(minVectorLocal);
-	local absolutePos2 = self.ent:LocalToWorld(maxVectorLocal);
 	
-	local minPos = minVector(absolutePos1, absolutePos2);
-	local maxPos = maxVector(absolutePos1, absolutePos2);
-
 end
-
---//
---// Garbage collects the object.
---//
-function Object:Remove() 
-	GameObject:RemoveGameObject(self);
-end
+hook.Add("PlayerShouldTakeDamage", "Hook_SafeZoneCheck", SafeZoneCheck)

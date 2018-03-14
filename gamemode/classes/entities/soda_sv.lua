@@ -4,13 +4,14 @@ Object_Soda.members = {"used"};
 GameObject:Register( "Object_Soda", Object_Soda)
 local Object = Object_Soda;
    
+Object.FLAGS = { FROZEN = false, COLLISION_GROUP_DEBRIS};
+   
 --//
 --//	Constructs a soda object.
 --//
 function Object:new( ply, pos, angle )
 	
 	local metaProperties = {
-		entityType = "Object_Soda",
 		propModel = "models/props_junk/PopCan01a.mdl",
 		used = false;
 	}

@@ -12,7 +12,6 @@ Object.FLAGS = { UNMOVEABLE = true, UNIQUE = true, ONGROUND = true, FROZEN = tru
 function Object:new( ply, position, angle )
 	
 	local metaProperties = {
-		entityType = "Object_SpawnPoint",
 		propModel = "models/props_trainstation/trainstation_clock001.mdl",
 		lastDeath = 0,
 		isSpawning = false;
@@ -26,11 +25,11 @@ end
 --//
 function Object:OnOwnerSpawn()
 	
-	print(owner)
+	local ent = self:GetEntity();
 	
-	if (self.ent != nil) then
+	if (ent) then
 		self:GetOwner().isSpawning = false;
-		self:GetOwner():SetPos(self.ent:GetPos())
+		self:GetOwner():SetPos(ent:GetPos())
 	end
 end
 
@@ -38,23 +37,25 @@ end
 --//
 --//
 function Object:OnPlayerDeathThink(ply)
-
-	if (!self.isSpawning) then
-		if ( ply:KeyPressed(IN_ATTACK) || ply:KeyPressed(IN_ATTACK2) || ply:KeyPressed(IN_JUMP) ) then
-
-			GameObject:TriggerEventInSphere(self.ent:GetPos(), 512, self, "OnOwnerSpawnGlobal") 
-			GameObject:TriggerEventLocal(ply, self, "OnOwnerSpawn") 
-			self.isSpawning = true;
-			
-			timer.Create( "Timer_SpawnEffectEnd", 4, 1, function() 
-				if (!ply:Alive() && self.isSpawning == true) then
-					ply:Spawn();
-				end
-			end)
-		end
-	else
-		return false;
-	end
+	
+	--if (!self.isSpawning) then
+	--	if ( ply:KeyPressed(IN_ATTACK) || ply:KeyPressed(IN_ATTACK2) || ply:KeyPressed(IN_JUMP) ) then
+	--
+	--		GameObject:TriggerEventInSphere(self:GetEntity():GetPos(), 512, self, "OnOwnerSpawnGlobal") 
+	--		GameObject:TriggerEventLocal(ply, self, "OnOwnerSpawn") 
+	--		self.isSpawning = true;
+	--		
+	--		timer.Create( "Timer_SpawnEffectEnd", 4, 1, function() 
+	--			
+	--			print("nope")
+	--			if (!ply:Alive() && self.isSpawning == true) then
+	--				ply:Spawn();
+	--			end
+	--		end)
+	--	end
+	--else
+	--	return false;
+	--end
 	
 end
 

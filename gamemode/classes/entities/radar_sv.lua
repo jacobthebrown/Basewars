@@ -12,7 +12,6 @@ Object.FLAGS = { UNIQUE = true };
 function Object:new( ply, position, scanDuration )
 	
 	local metaProperties = {
-		entityType = "Object_Radar",
 		propModel = "models/props_wasteland/laundry_basket001.mdl",
 		lastScanned = 0,
 		scanDuration = scanDuration or 10,
@@ -50,10 +49,8 @@ concommand.Add( "radar_Scan", function( ply, cmd, args )
 	
 	local gameObject = nil;
 
-	PrintTable(GameObject:GetAllGameObjects())
-
 	for k, v in pairs (GameObject:GetAllGameObjects()) do
-		if (v.entityType == "Object_Radar" && v:GetOwner() == ply) then
+		if (v:GetType() == "Object_Radar" && v:GetOwner() == ply) then
 			gameObject = v;
 			break;
 		end

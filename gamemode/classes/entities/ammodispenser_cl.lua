@@ -19,9 +19,10 @@ function Object:Draw()
 	local angleOffset = Angle(0, 90, 0);
 	local scale = 0.05;
 	
-	local angle = self.ent:GetAngles()
+	local ent = self:GetEntity();
+	local angle = ent:GetAngles()
 	
-	cam.Start3D2D(self.ent:LocalToWorld(vectorOffset), self.ent:LocalToWorldAngles(angleOffset), scale)
-		draw.DrawText("Type: " .. tostring(self.entityType), "TheDefaultSettings", 0,100, Color(255,255,255), TEXT_ALIGN_CENTER)
+	cam.Start3D2D(ent:LocalToWorld(vectorOffset), ent:LocalToWorldAngles(angleOffset), scale)
+		draw.DrawText("Type: " .. tostring(self:GetType()), "TheDefaultSettings", 0,100, Color(255,255,255), TEXT_ALIGN_CENTER)
 	cam.End3D2D()
 end

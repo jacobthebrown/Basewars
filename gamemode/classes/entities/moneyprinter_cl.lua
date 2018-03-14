@@ -15,7 +15,9 @@ end
 --//
 function Object:Draw()
 
-	local ent = self.ent;
+	local ent = self:GetEntity();
+
+	if (!ent:IsValid()) then return end
 
 	local vectorTranslation = ent:LocalToWorld(Vector(17 ,0, 50));
 	local angleTranslation = ent:LocalToWorldAngles(Angle(0, 90, 90));

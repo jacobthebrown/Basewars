@@ -1,11 +1,8 @@
 Object_Player = {};
 Object_Player.__index = Object_Player;
-Object_Player.members = {"player","wealth"};
+Object_Player.members = {"wealth", "settings"};
 GameObject:Register( "Object_Player", Object_Player)
 local Object = Object_Player;
-
-getmetatable("Player").GameObj = function(ply) return ply.gamedata; end 
-getmetatable("Player").GameObj = function(ply) return ply.gamedata; end 
 
 Object.settings = {
     CHAR = {}, 
@@ -13,7 +10,7 @@ Object.settings = {
     TEAM = nil, 
     PPSETTINGS = {
         FRIENDSALLOWED = { 
-            PROPS = true, 
+            PROPS = false, 
             TOOL = false
             
         }, 
@@ -22,7 +19,7 @@ Object.settings = {
             TOOL = false
         } 
     },
-    ADMIN = true
+    ADMIN = false
 };
 
 --//
@@ -30,15 +27,12 @@ Object.settings = {
 --//
 function Object:new( ply )
 
-	local metaPlayer = {
+	local metaobject = {
         wealth = 0,
-        player = ply,
-        settings = {};
+        settings = table.Copy(Object.settings)
 	}
 
-    table.CopyFromTo(Object.settings, metaPlayer.settings);
-
-	return GameObject:newPlayer(Object, metaPlayer, ply);
+	return GameObject:newPlayer(Object, metaobject, ply);
 end
 
 --//
@@ -46,10 +40,10 @@ end
 --//
 function Object:SetWealth(amount)
     
-    if ( self.player:IsValid() && isnumber(amount) ) then
+    if ( self:GetEntity():IsValid() && isnumber(amount) ) then
         self.wealth = amount;
 
-        GameObject:SendGameDataSingle(self:GetPlayer(), self);
+        GameObject:SendGameObjectDataSingle(self:GetEntity(), self);
     else
         print("PlayerData:RecieveMoney() - No player data exists, or money given");
     end
@@ -61,7 +55,9 @@ end
 --//
 function Object:GiveWealth(amount)
     
-    if ( self.player:IsValid() && isnumber(amount) ) then
+    print(self.entityID)
+    
+    if ( self:GetEntity():IsValid() && isnumber(amount) ) then
         self:SetWealth(self.wealth + amount);
     else
         print("PlayerData:RecieveMoney() - No player data exists, or money given");
@@ -74,7 +70,7 @@ end
 --//
 function Object:TakeWealth(amount)
     
-    if ( self.player:IsValid() && isnumber(amount) ) then
+    if ( self:GetEntity():IsValid() && isnumber(amount) ) then
         self:SetWealth(self.wealth - amount);
     else
         print("PlayerData:RecieveMoney() - No player data exists, or money given");
@@ -91,11 +87,25 @@ function Object:AddFriend(targetPlayer)
 end
 
 function Object:RemoveFriend(targetPlayer)
-    
     if (targetPlayer && targetPlayer:IsPlayer()) then
        self.settings.FRIENDS[targetPlayer] = nil;
     end
+end
+
+function Object:OnTakeDamage(dmginfo)
+
+    local ply = self:GetEntity();
+    local newHealth = ply:Health() - dmginfo:GetBaseDamage();
     
+    if (newHealth <= 0) then
+        ply:Kill()
+    end
+    
+    self:GetOwner():SetHealth(newHealth);
+end
+
+function Object:OnPhysgunPickup()
+    return false
 end
 
 concommand.Add( "addFriend", function( ply, cmd, args ) 
@@ -104,7 +114,7 @@ concommand.Add( "addFriend", function( ply, cmd, args )
     
     if (ent && ent:IsPlayer()) then
        
-        ply.gamedata:AddFriend(ent);
+        ply.gameobject:AddFriend(ent);
         
     end
 
@@ -116,7 +126,7 @@ concommand.Add( "removeFriend", function( ply, cmd, args )
     
     if (ent && ent:IsPlayer()) then
        
-        ply.gamedata:RemoveFriend(ent);
+        ply.gameobject:RemoveFriend(ent);
         
     end
 

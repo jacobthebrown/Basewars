@@ -6,16 +6,16 @@ local Object = Object_SafeZone;
 --//
 --//	Constructs a money printer object.
 --//
-function Object:new( ply, position, maxBalance, printAmount )
-	
-	local metaInstance = {
-		entityType = "Object_SafeZone",
-		propModel = "models/props_combine/combinethumper002.mdl",
-	}
-	
-	return GameObject:new(Object, metaInstance, ply, position);
+function Object:new( metaInstance )
+	return GameObject:new(Object, metaInstance);
 end
 
+--//
+--//	Function for rendering the object to the client.
+--//
+function Object:Draw()
+
+end
 
 local function minVector(vec1, vec2)
 	
@@ -41,33 +41,29 @@ local function maxVector(vec1, vec2)
 	
 end
 
---Trigger to player (entering safe szone), send curtime to sync with draw.
-function SafeZoneCheck(ply)
-		
-	for k, v in pairs (ents.GetAll()) do
-		
-		if (v.gamedata == nil || v.gamedata.entityType != "Object_SafeZone") then
-			continue;	
-		end
+function Object:DrawGlobal()
 
-		
-		local minVectorLocal = v:OBBMins() + Vector(-200,-200,0);
-		local maxVectorLocal = v:OBBMaxs() + Vector(200,200,0);
-		local absolutePos1 = v:LocalToWorld(minVectorLocal);
-		local absolutePos2 = v:LocalToWorld(maxVectorLocal);
-		
-		local minPos = minVector(absolutePos1, absolutePos2);
-		local maxPos = maxVector(absolutePos1, absolutePos2);
-		
-		local nope = false;
-		for k, v in pairs (ents.FindInBox( minPos, maxPos )) do
-			
-			if (v == ply) then
-				return false;
-			end
-		end
-	end
+	local ent = self:GetEntity();
 	
+	local width = math.abs(ent:OBBMins().x) + math.abs(ent:OBBMaxs().x);
+	local girth = math.abs(ent:OBBMins().y) + math.abs(ent:OBBMaxs().y);
 	
+	local minVectorLocal = ent:OBBMins() + Vector(-200,-200,0);
+	local maxVectorLocal = ent:OBBMaxs() + Vector(200,200,0);
+
+	render.DrawWireframeBox( ent:LocalToWorld(Vector(0,0,0)) ,ent:GetAngles(), minVectorLocal, maxVectorLocal, Color(255,255,255,255), true )
+	
+	local absolutePos1 = ent:LocalToWorld(minVectorLocal);
+	local absolutePos2 = ent:LocalToWorld(maxVectorLocal);
+	
+	local minPos = minVector(absolutePos1, absolutePos2);
+	local maxPos = maxVector(absolutePos1, absolutePos2);
+
 end
-hook.Add("PlayerShouldTakeDamage", "Hook_SafeZoneCheck", SafeZoneCheck)
+
+--//
+--// Garbage collects the object.
+--//
+function Object:Remove() 
+	GameObject:RemoveGameObject(self);
+end
