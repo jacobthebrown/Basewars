@@ -5,10 +5,12 @@ ENT.TimeInitalized = 0;
 
 function ENT:Initialize()
 
-	self:SetModel(Model(self:GetObject().propModel) or Model("models/props_lab/servers.mdl"));
+	self:SetModel(Model(self:GetObject():GetModel()) or Model("models/props_lab/servers.mdl"));
 	self:PhysicsInit(SOLID_VPHYSICS);
 	self:SetMoveType(MOVETYPE_VPHYSICS);
 	self:SetSolid(SOLID_VPHYSICS);
+	self:SetUseType(SIMPLE_USE);
+	--self:AddEffects(EF_ITEM_BLINK)
 	
 	local phys = self:GetPhysicsObject();
 	if(phys:IsValid()) then

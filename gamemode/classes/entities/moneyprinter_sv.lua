@@ -1,35 +1,33 @@
-local CONFIG_PrintTimer = 3;
-local CONFIG_DefaultMaxBalance = 1000;
-local CONFIG_DefaultPrintAmount = 1;
+local Object = {};
+Object.members = {
+	model = "models/props_lab/servers.mdl",
+	maxHealth = 1000,
+	balance = 0, 
+	maxBalance = 1000, 
+	printAmount = 10,
+	upgrades = {}
+};
 
-Object_MoneyPrinter = {};
-Object_MoneyPrinter.__index = Object_MoneyPrinter;
-Object_MoneyPrinter.members = {"balance", "maxBalance", "printAmount"};
-GameObject:Register( "Object_MoneyPrinter", Object_MoneyPrinter)
-local Object = Object_MoneyPrinter;
-
-Object.SkillTree = {
-	{ 
-		name = "Greased Gears", 
-		desc = "", 
-		effects = function(obj) obj:SetMaxHealth(obj:GetMaxHealth() + 10); end 
+Object.upgradetree = {
+	[1] = { 
+		effects = { 
+			["Immediate"] = BW.upgrade:HealthIncreaser(500),
+			["OnTakeDamage"] = BW.upgrade:DamageReducer(DMG_BULLET, 0.50)
+		},
+		children = {2},
+		parent = {}
+	},
+	[2] = {
+		effect = {},
+		parent = {1}
 	}
 }
 
 --//
 --//	Constructs a money printer object.
 --//
-function Object:new( ply, position, maxBalance, printAmount )
-	
-	local metaInstance = {
-		propModel = "models/props_lab/servers.mdl",
-		maxHealth = 1000,
-		maxBalance = maxBalance or CONFIG_DefaultMaxBalance,
-		printAmount = printAmount or CONFIG_DefaultPrintAmount,
-		balance = 0
-	}
-	
-	return GameObject:new(Object, metaInstance, ply, position, ply:LocalToWorldAngles(Angle(0,180,0)));
+function Object:new( ply, position)
+	return GameObject:new(Object, clone(Object.members), ply, position, ply:LocalToWorldAngles(Angle(0,180,0)));
 end
 
 --//
@@ -66,8 +64,25 @@ end
 --//
 --//
 --//
-function Object:Upgrade()	
-	PrintTable(self.SkillTree);
+function Object:Upgrade(upgradeID)
+
+	local upgrade = Object.upgradetree[upgradeID];
+
+	if (upgrade && !self.upgrades[upgradeID]) then
+	
+		table.insert(self.upgrades, upgradeID);
+	
+		print("Upgrading");
+		
+		for k, v in pairs(upgrade.effects) do
+			if (k == "Immediate") then
+				v(self);
+			end
+		end
+		
+	end
+	
+	
 end
 
 ------------[[
@@ -80,7 +95,7 @@ end
 --//	Creates a global timer that loops through every printer and prints.
 --//
 function InitalizeGlobalTimers()
-	timer.Create( "Timers_PrintAll", CONFIG_PrintTimer, 0, function() 
+	timer.Create( "Timers_PrintAll", 10, 0, function() 
 
 		local updatedPrinters = {};
 		for k, v in pairs( GameObject:GetAllGameObjects() ) do
@@ -92,4 +107,6 @@ function InitalizeGlobalTimers()
 end
 hook.Add("OnReloaded", "OnReloaded_InitalizeGlobalTimers", InitalizeGlobalTimers)
 hook.Add("PostGamemodeLoaded", "Hook_InitalizeGlobalTimers", InitalizeGlobalTimers)
+
+GameObject:Register( "Object_MoneyPrinter", Object)
 

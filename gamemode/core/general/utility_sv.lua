@@ -34,3 +34,10 @@ end
 function table.IsEmpty( tbl )
 	return next( tbl ) == nil
 end
+
+--//
+--//
+--//
+function clone(tbl)
+	return table.Copy(tbl);
+end

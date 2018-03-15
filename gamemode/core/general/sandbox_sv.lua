@@ -75,3 +75,7 @@ function GM:OnPhysgunReload( physgun, ply )
 	return false;	
 	
 end
+
+hook.Add("OnNPCKilled", "f", function( npc, attacker, inflictor )
+	--npc:Remove();
+end)

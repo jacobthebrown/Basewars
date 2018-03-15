@@ -54,6 +54,18 @@ function table.FindDif( dif, tblA, tblB, depth )
 	end
 end
 
+function table.AddMany(tbls)
+	
+	local union = {};
+	
+    for k,v in pairs(tbls) do
+    	table.Add(union, v);
+    end
+    
+    return union;
+end
+
+
 --local tableA = {a=1,b=2,c=3, d={a='1',b='2',c="3"}};	-- Current Data 
 --local tableB = {a=1,c=3, d=100}							-- Cache Data
 --local dif = {};

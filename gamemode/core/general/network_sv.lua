@@ -11,6 +11,7 @@ function MODULE:InitializeNetworkStrings()
 	util.AddNetworkString("GameObject_SendGameObjectData_AboutMany");
 	util.AddNetworkString("GameObject_SendTriggerEvent")
 	util.AddNetworkString("GameObject_PlayerFullyLoaded")
+	util.AddNetworkString("GameObject_Upgrade")
 	
 	-- When a client tells us he's fully loaded the first rendered frame of the
 	-- game we call the player fully loaded hook

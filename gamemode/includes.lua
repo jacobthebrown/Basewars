@@ -48,8 +48,8 @@ if SERVER then
     function ExecuteIncludes() 
     
         IncludeFromDirectory("core/")
-        IncludeFromDirectory("classes/")
         AddCSLuaFileFromDirectory("core/");
+        IncludeFromDirectory("classes/")
         AddCSLuaFileFromDirectory("classes/");
         
     end

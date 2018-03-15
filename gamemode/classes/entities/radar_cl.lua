@@ -1,8 +1,10 @@
-Object_Radar = {};
-Object_Radar.__index = Object_Radar;
-Object_Radar.members = {"lastScanned", "scanDuration", "targetPlayer"};
-GameObject:Register( "Object_Radar", Object_Radar)
-local Object = Object_Radar;
+local Object = {};
+
+Object.members = {
+	lastScanned = "",
+	scanDuration = "",
+	targetPlayer = ""
+};
 
 --//
 --//	Constructs a money printer object.
@@ -84,3 +86,5 @@ function Object:DrawGlobal()
 	cam.End3D2D();
 	
 end
+
+GameObject:Register( "Object_Radar", Object)

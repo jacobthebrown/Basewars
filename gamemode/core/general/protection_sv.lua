@@ -18,9 +18,9 @@ hook.Add("PlayerSpawnProp", "PlayerSpawnProp_OnPhysgunPickup", MODULE.PlayerSpaw
 --//
 function MODULE.OnPhysgunPickup(ply, ent)
 
-	if (!ent:GetObject()) then	
-		return false;
-	elseif (!ply || !ply:GetObject() || ent:IsPlayer()) then
+	print(ply:GetObject())
+
+	if (!ent:GetObject() || !ply || !ply:GetObject() || ent:IsPlayer()) then
 		return false;
 	end
 	

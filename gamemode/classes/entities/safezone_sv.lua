@@ -1,19 +1,14 @@
-Object_SafeZone = {};
-Object_SafeZone.__index = Object_SafeZone;
-GameObject:Register( "Object_SafeZone", Object_SafeZone)
-local Object = Object_SafeZone;
+local Object = {};
+
+Object.members = {
+		model = "models/props_combine/combinethumper002.mdl",
+	}
 
 --//
 --//	Constructs a money printer object.
 --//
 function Object:new( ply, position, maxBalance, printAmount )
-	
-	local metaInstance = {
-		objectType = "Object_SafeZone",
-		propModel = "models/props_combine/combinethumper002.mdl",
-	}
-	
-	return GameObject:new(Object, metaInstance, ply, position);
+	return GameObject:new(Object, clone(Object.members), ply, position);
 end
 
 
@@ -71,3 +66,5 @@ function SafeZoneCheck(ply)
 	
 end
 hook.Add("PlayerShouldTakeDamage", "Hook_SafeZoneCheck", SafeZoneCheck)
+
+GameObject:Register( "Object_SafeZone", Object);

@@ -88,16 +88,16 @@ function GameObject:newProp(metaObject, gameobject, ent, ply)
 	gameobject:SetOwner(ply);
 	gameobject:SetHealth(gameobject:GetMaxHealth());
 	
-	ent:SetNWInt( 'EdicID', gameobject:GetIndex() )
-	
-	gameobject:SetEntity(ent);
-	gameobject:SetType(metaObject.objectType);
-	ent:CallOnRemove( "RemoveGameObject", function( ent ) if (ent:GetObject()) then ent:GetObject():Remove() end end )
-	
 	-- Add Game Object to global list of entities.
 	gameobject:SetIndex(GameObject.IndexNumber);
 	GameObject:IncrementIndex();
 	GameObject:AddGameObject(gameobject);
+	gameobject:SetType(metaObject.objectType);
+	ent:CallOnRemove( "RemoveGameObject", function( ent ) if (ent:GetObject()) then ent:GetObject():Remove() end end )
+	
+	ent:SetNWInt( 'EdicID', gameobject:GetIndex() )
+	
+	gameobject:SetEntity(ent);
 
 
 
@@ -265,7 +265,7 @@ hook.Add( "PlayerDeath", "GameObject_OnPlayerDeath", function( victim, inflictor
 end)
 
 hook.Add( "EntityTakeDamage", "GameObject_OnEntityTakeDamage", function( target, dmginfo )
-	if (target.GetObject && target:GetObject().OnTakeDamage) then
+	if (target:GetObject() && target:GetObject().OnTakeDamage) then
 		target:GetObject():OnTakeDamage(dmginfo);
 	end
 end)

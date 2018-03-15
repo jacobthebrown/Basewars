@@ -29,6 +29,8 @@ GameObject.unloadedents = GameObject.unloadedents or {};
 --//
 function GameObject:Register(objectType, metaObject)
 	
+	metaObject.__index = metaObject;
+	
 	metaObject.SetHealth = function(obj, value) obj.health = value; end
 	metaObject.GetHealth = function(obj) return obj.health; end
 	metaObject.SetMaxHealth = function(obj, value) obj.maxHealth = value; end
@@ -74,39 +76,65 @@ function GameObject:Register(objectType, metaObject)
 	
 	local objectmembers = metaObject.members;
 	
-
-	
-	
 	if (objectmembers) then
-		for i=1, #objectmembers do
+		for k, v in pairs (objectmembers) do
 			
-			local memberName = string.upper(string.sub( objectmembers[i], 1, 1))..string.sub(objectmembers[i],2);
+			local memberName = string.upper(string.sub( k, 1, 1))..string.sub(k, 2);
 			local getFunction = "Get"..memberName;
 			local setFunction = "Set"..memberName;
 			
-			metaObject[getFunction] = function(obj) return obj[objectmembers[i]]; end
-			metaObject[setFunction] = function(obj, newValue) obj[objectmembers[i]] = newValue; end
+			metaObject[getFunction] = function(obj) return obj[k]; end
+			metaObject[setFunction] = function(obj, newValue) obj[k] = newValue; end
 			
 		end
 	end
 	
-	if (!metaObject.OnTakeDamage) then
+	metaObject.RunUpgradeHook = function(gameobject, hooktype, args)
+	
+		local metaobject = GameObject:GetMetaObject(gameobject:GetType());
+		local updatedArguments = args;
+	
+		print(metaobject)
+		print(gameobject)
+		PrintTable(args)
+	
+		for k_upgrade, v_upgrade in pairs (gameobject.upgrades) do
+			
+			print(k_upgrade.." | "..v_upgrade);
+			--`PrintTa
+			
+			for k, v in pairs (metaobject.upgradetree[v_upgrade].effects) do
+				if (k == hooktype) then
+					updatedArguments = v(gameobject, args);
+				end
+			end
+		end
 		
-		metaObject.OnTakeDamage = function(obj, dmginfo)
+	end
+		
+	metaObject.OnTakeDamage = function(obj, dmginfo)
 	
-            if (CLIENT) then return end;
-            
-			if (dmginfo:GetDamageType() == DMG_CRUSH) then
-				return;
-			end
+		--if (obj.OnTakeDamage) then
+		--	dmginfo = obj:OnTakeDamage(obj, dmginfo);
+		--end
 	
-			local totalDamage = math.floor((obj:GetHealth() or 0) - dmginfo:GetBaseDamage());
+		if (obj.upgrades) then
+			print(obj:RunUpgradeHook("OnTakeDamage", {dmginfo = dmginfo} ))
+			--dmginfo = --.dmginfo; -- or dmginfo;
+		end
+	
+        if (CLIENT) then return end;
+        
+		if (dmginfo:GetDamageType() == DMG_CRUSH) then
+			return;
+		end
+	
+		local totalDamage = math.floor((obj:GetHealth() or 0) - dmginfo:GetBaseDamage());
 
-			if (totalDamage <= 0) then
-				obj:Remove()
-			else
-				obj:SetHealth(totalDamage);
-			end
+		if (totalDamage <= 0) then
+			obj:Remove()
+		else
+			obj:SetHealth(totalDamage);
 		end
 	end
 	

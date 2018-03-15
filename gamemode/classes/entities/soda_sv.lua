@@ -1,22 +1,17 @@
-Object_Soda = {};
-Object_Soda.__index = Object_Soda;
-Object_Soda.members = {"used"};
-GameObject:Register( "Object_Soda", Object_Soda)
-local Object = Object_Soda;
-   
+local Object = {};
+
+Object.members = {
+	model = "models/props_junk/PopCan01a.mdl",
+	used = false
+};
+
 Object.FLAGS = { FROZEN = false, COLLISION_GROUP_DEBRIS};
    
 --//
 --//	Constructs a soda object.
 --//
 function Object:new( ply, pos, angle )
-	
-	local metaProperties = {
-		propModel = "models/props_junk/PopCan01a.mdl",
-		used = false;
-	}
-	
-	return GameObject:new(Object, metaProperties, ply, pos, angle);
+	return GameObject:new(Object, clone(Object.members), ply, pos, angle);
 end
 
 --//
@@ -31,3 +26,5 @@ function Object:Use(ply, ent)
 		
     end
 end
+
+GameObject:Register( "Object_Soda", Object);

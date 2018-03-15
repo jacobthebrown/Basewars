@@ -1,24 +1,19 @@
-Object_Radar = {};
-Object_Radar.__index = Object_Radar;
-Object_Radar.members = {"lastScanned", "scanDuration", "targetPlayer"};
-GameObject:Register( "Object_Radar", Object_Radar)
-local Object = Object_Radar;
+local Object = {};
+
+Object.members = {
+	model = "models/props_wasteland/laundry_basket001.mdl",
+	lastScanned = 0,
+	scanDuration = 10,
+	targetPlayer = nil
+};
 
 Object.FLAGS = { UNIQUE = true };
 
 --//
 --//	Constructs a radar object for the server.
 --//
-function Object:new( ply, position, scanDuration )
-	
-	local metaProperties = {
-		propModel = "models/props_wasteland/laundry_basket001.mdl",
-		lastScanned = 0,
-		scanDuration = scanDuration or 10,
-		targetPlayer = nil
-	}
-	
-	return GameObject:new(Object, metaProperties, ply, position, Angle(0,0,0));
+function Object:new( ply, position )
+	return GameObject:new(Object, clone(Object.members), ply, position, Angle(0,0,0));
 end
 
 --//
@@ -69,5 +64,4 @@ concommand.Add( "radar_Scan", function( ply, cmd, args )
 
 end)
 
-
-
+GameObject:Register( "Object_Radar", Object)

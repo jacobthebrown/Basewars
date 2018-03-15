@@ -1,7 +1,4 @@
-Object_VendingMachine = {};
-Object_VendingMachine.__index = Object_VendingMachine;
-GameObject:Register( "Object_VendingMachine", Object_VendingMachine)
-local Object = Object_VendingMachine;
+local Object = {};
 
 --//
 --//	Constructs a vending machine object.
@@ -37,5 +34,6 @@ function Object:Draw()
 		
 	cam.End3D2D();
 
-	
 end
+
+GameObject:Register( "Object_VendingMachine", Object);

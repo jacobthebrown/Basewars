@@ -1,7 +1,4 @@
-Object_Prop = {};
-Object_Prop.__index = Object_Prop;
-GameObject:Register( "Object_Prop", Object_Prop)
-local Object = Object_Prop;
+local Object = {};
 
 --//
 --//	Constructs a spawn point object.
@@ -9,3 +6,5 @@ local Object = Object_Prop;
 function Object:new( metaInstance )
 	return GameObject:new(Object, metaInstance);
 end
+
+GameObject:Register( "Object_Prop", Object);

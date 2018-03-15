@@ -1,23 +1,16 @@
-Object_AmmoDispenser = {};
-Object_AmmoDispenser.__index = Object_AmmoDispenser;
-Object_AmmoDispenser.members = {"lastDispensed", "dispenserRate"};
-GameObject:Register( "Object_AmmoDispenser", Object_AmmoDispenser);
-local Object = Object_AmmoDispenser;
-
+local Object = {}
+Object.members = {
+	model = "models/items/ammocrate_grenade.mdl",
+	lastDispensed = 0,
+	dispenserRate = 1;
+	
+};
 
 --//
 --//	Constructs a ammo dispenser object for the server.
 --//
-function Object:new( ply, position, maxBalance, printAmount )
-	
-	local metaInstance = {
-		objectType = "Object_AmmoDispenser",
-		propModel = "models/items/ammocrate_grenade.mdl",
-		lastDispensed = 0,
-		dispenserRate = 1;
-	}
-	
-	return GameObject:new(Object, metaInstance, ply, position);
+function Object:new( ply, position, dispenserRate )
+	return GameObject:new(Object, clone(Object.members), ply, position);
 end
 
 --//
@@ -33,3 +26,5 @@ function Object:Use(ply, ent)
     end
     
 end
+
+GameObject:Register( "Object_AmmoDispenser", Object);

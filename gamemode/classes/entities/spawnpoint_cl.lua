@@ -1,7 +1,4 @@
-Object_SpawnPoint = {};
-Object_SpawnPoint.__index = Object_SpawnPoint;
-GameObject:Register( "Object_SpawnPoint", Object_SpawnPoint)
-local Object = Object_SpawnPoint;
+local Object = {};
 
 --//
 --//	Constructs a vending machine object.
@@ -60,3 +57,4 @@ function Object:DrawHUD()
 
 end
 
+GameObject:Register( "Object_SpawnPoint", Object);

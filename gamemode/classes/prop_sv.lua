@@ -1,7 +1,4 @@
-Object_Prop = {};
-Object_Prop.__index = Object_Prop;
-GameObject:Register( "Object_Prop", Object_Prop)
-local Object = Object_Prop;
+local Object = {};
 
 --//
 --//	Constructs a spawn point object.
@@ -16,9 +13,10 @@ function Object:new( ply, ent )
 		health = 100;
 	end
 	
-	local metaProperties = {
+	local metamembers = {
 		maxHealth = health
 	}
 	
-	return GameObject:newProp(Object, metaProperties, ent, ply);
+	return GameObject:newProp(Object, metamembers, ent, ply);
 end
+GameObject:Register( "Object_Prop", Object);

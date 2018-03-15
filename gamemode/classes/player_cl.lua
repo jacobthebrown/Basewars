@@ -1,8 +1,10 @@
-Object_Player = {};
-Object_Player.__index = Object_Player;
-Object_Player.members = {"player","wealth"};
-GameObject:Register( "Object_Player", Object_Player)
-local Object = Object_Player;
+local Object = {};
+Object.members = {
+    player = nil,
+    settings,
+    wealth = 0
+};
+
 
 --//
 --//    Constructs a new object to store player data.
@@ -10,6 +12,8 @@ local Object = Object_Player;
 function Object:new( metaInstance )
 	return GameObject:new(Object, metaInstance);
 end
+
+GameObject:Register( "Object_Player", Object);
 
 hook.Add( "HUDPaint", "HUDPaint_HUD", function()
     
@@ -28,6 +32,8 @@ hook.Add( "HUDPaint", "HUDPaint_HUD", function()
     end
     
 end )
+
+
 
 --//
 --// We want to be sure the first frame has rendered before we let the server know we've spawned.
@@ -56,3 +62,4 @@ hook.Add( "HUDShouldDraw", "HideHUD", function(name)    -- http://wiki.garrysmod
 		return false
 	end
 end)
+

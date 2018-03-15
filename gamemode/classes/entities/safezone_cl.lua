@@ -1,7 +1,4 @@
-Object_SafeZone = {};
-Object_SafeZone.__index = Object_SafeZone;
-GameObject:Register( "Object_SafeZone", Object_SafeZone)
-local Object = Object_SafeZone;
+local Object = {};
 
 --//
 --//	Constructs a money printer object.
@@ -67,3 +64,5 @@ end
 function Object:Remove() 
 	GameObject:RemoveGameObject(self);
 end
+
+GameObject:Register( "Object_SafeZone", Object);

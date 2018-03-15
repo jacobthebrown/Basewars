@@ -1,10 +1,11 @@
-Object_Player = {};
-Object_Player.__index = Object_Player;
-Object_Player.members = {"wealth", "settings"};
-GameObject:Register( "Object_Player", Object_Player)
-local Object = Object_Player;
+local Object = {};
 
-Object.settings = {
+Object.members = {
+    wealth = 0, 
+    settings = nil
+};
+
+Object.members.settings = {
     CHAR = {}, 
     FRIENDS = {}, 
     TEAM = nil, 
@@ -32,7 +33,7 @@ function Object:new( ply )
         settings = table.Copy(Object.settings)
 	}
 
-	return GameObject:newPlayer(Object, metaobject, ply);
+	return GameObject:newPlayer(Object, clone(Object.members), ply);
 end
 
 --//
@@ -98,6 +99,7 @@ function Object:OnTakeDamage(dmginfo)
     local newHealth = ply:Health() - dmginfo:GetBaseDamage();
     
     if (newHealth <= 0) then
+        print(ply)
         ply:Kill()
     end
     
@@ -107,6 +109,8 @@ end
 function Object:OnPhysgunPickup()
     return false
 end
+
+GameObject:Register( "Object_Player", Object);
 
 concommand.Add( "addFriend", function( ply, cmd, args ) 
 

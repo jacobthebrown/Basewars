@@ -14,7 +14,8 @@ function MODULE.InitializePlayerData(ply)
 		gameobject:Remove();
 	end
 	
-	ply:SetObject(Object_Player:new(ply));
+	local metaobject =  GameObject:GetMetaObject("Object_Player");	
+	ply:SetObject(metaobject:new(ply));
 	
 end
 hook.Add( "PlayerFullyLoaded", "PlayerFullyLoaded_InitializePlayerData", MODULE.InitializePlayerData )	-- CUSTOM HOOK 'PlayerFullyLoaded'
@@ -33,7 +34,8 @@ function MODULE.InitalizeBotData(ply)
 		ply:GetObject():Remove();
 	end
 	
-	ply:SetObject(Object_Player:new(ply));
+	local metaobject =  GameObject:GetMetaObject("Object_Player");
+	ply:SetObject(metaobject:new(ply));
 	
 end
 hook.Add( "PlayerInitialSpawn", "PlayerInitialSpawn_InitalizeBotData", MODULE.InitalizeBotData )
@@ -77,7 +79,10 @@ function MODULE.OnPlayerSpawnObject(ply, model, ent)
 	end
 	
 	if (ent:GetClass() == "prop_physics") then
-		ent:SetObject(Object_Prop:new(ply, ent));
+		local metaobject =  GameObject:GetMetaObject("Object_Prop");
+		ent:SetObject(metaobject:new(ply, ent));
+		
+		PrintTable(ent:GetObject())
 	end
 	
 	local phys = ent:GetPhysicsObject();

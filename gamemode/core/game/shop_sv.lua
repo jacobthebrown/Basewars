@@ -2,15 +2,27 @@ BW.shop = {};
 
 local MODULE = BW.shop;
 
+net.Receive("GameObject_Upgrade", function(len, ply)
+
+	
+	local edic = net.ReadUInt(32);
+	local upgradeID = net.ReadUInt(8);
+	
+	local gameobject = GameObject:GetGameObject(edic);
+	
+	if (gameobject && gameobject.Upgrade) then
+		gameobject:Upgrade(upgradeID);	
+	end
+	
+end)
+
 concommand.Add( "create", function( ply, cmd, args ) 
 	
 	local metaObject = GameObject:GetMetaObject("Object_" .. args[1]) or GameObject:GetMetaObject(args[1]);
 	
 	if (!metaObject) then
-		return 
+		return
 	end
-
-	PrintTable(metaObject)
 
 	-- If the owner of the game object should only have one game object of its type.
 	if (metaObject.FLAGS && metaObject.FLAGS.UNIQUE) then
@@ -26,15 +38,5 @@ concommand.Add( "create", function( ply, cmd, args )
     
     local tr = util.TraceLine(trace);
 	local newObject = metaObject:new(ply, tr.HitPos);
-	
-end)
- 
-concommand.Add( "upgrade", function( ply, cmd, args ) 
-
-	local ent = ply:GetEyeTrace().Entity;
-
-	if (ent.gameobject && ent.gameobject.SkillTree) then
-		ent.gameobject:Upgrade();
-	end
 	
 end)

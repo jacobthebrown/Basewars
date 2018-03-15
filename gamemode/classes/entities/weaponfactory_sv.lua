@@ -1,18 +1,15 @@
-Object_WeaponFactory = {};
-Object_WeaponFactory.__index = Object_WeaponFactory;
-GameObject:Register( "Object_WeaponFactory", Object_WeaponFactory)
-local Object = Object_WeaponFactory;
+local Object = {};
+
+Object.members = {
+	model = "models/props_wasteland/laundry_washer003.mdl",
+}
 
 --//
 --//	Constructs a weapon factory object.
 --//
 function Object:new( ply, position, maxBalance, printAmount )
 	
-	local metaProperties = {
-		propModel = "models/props_wasteland/laundry_washer003.mdl",
-	}
-	
-	return GameObject:new(Object, metaProperties, ply, position);
+	return GameObject:new(Object, clone(Object.members), ply, position);
 end
 
 --//
@@ -23,3 +20,5 @@ function Object:Use(ply, ent)
         ply:Give("weapon_bw_pistol");
 	end
 end
+
+GameObject:Register( "Object_WeaponFactory", Object);

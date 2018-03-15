@@ -1,7 +1,4 @@
-Object_Soda = {};
-Object_Soda.__index = Object_Soda;
-GameObject:Register( "Object_Soda", Object_Soda)
-local Object = Object_Soda;
+local Object = {};
    
 --//
 --//	Constructs a soda object.
@@ -17,3 +14,5 @@ function Object:DrinkSoda( args )
 	LocalPlayer():EmitSound("physics/metal/soda_can_impact_hard2.wav");
     LocalPlayer():PrintMessage( HUD_PRINTTALK, "You drink the can of soda."); 
 end
+
+GameObject:Register( "Object_Soda", Object);
