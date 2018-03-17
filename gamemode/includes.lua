@@ -26,7 +26,6 @@ if SERVER then
             IncludeFromDirectory(dir..dirDirectories[i].."/") 
         end
     
-        
     end
     
     local function AddCSLuaFileFromDirectory(dir) 
@@ -60,7 +59,6 @@ end
 
 if CLIENT then
         
-    
     local function IncludeFromDirectory(dir) 
         
         local dirFiles, dirDirectories = file.Find("basewars/gamemode/" .. dir .. "*", "LUA");
@@ -86,7 +84,6 @@ if CLIENT then
         for i=1, #dirDirectories do
             IncludeFromDirectory(dir..dirDirectories[i].."/") 
         end
-    
         
     end
     
