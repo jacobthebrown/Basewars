@@ -41,7 +41,6 @@ function table.FindDif( dif, tblA, tblB, depth )
 			end
 			
 		else
-            -- If tableA is a tableA and tableB isn't, then we copy tableAad
 			if((v_tblA == tblB[k_tblA])) then
 				continue;
 			elseif (istable(v_tblA)) then
@@ -83,13 +82,27 @@ end
 
 --//
 
-function MODULE:GetEntityByEdic(edicID)
+function MODULE:GetEntityByEdic(edicID, prediction)
 
 	if (!isnumber(edicID)) then
 		error("GetEntityByEdic was not given a number!")
 	end
+	
+	if (prediction && prediction:IsValid()) then
+	
+		local edic = prediction:GetNWInt('EdicID', nil);
+		
+		--print("Edic: "..edic);
+		
+		if (edic == edicID) then
+			return prediction;	
+		end
+		
+	end
 
 	local entitysearch = ents.GetAll();
+	
+	--PrintTable(entitysearch)
 	
 	local entFound = nil;
 	
@@ -113,8 +126,6 @@ function MODULE:GetEntityByEdic(edicID)
 		end
 
 	end
-
-
 
 	return entFound;
 

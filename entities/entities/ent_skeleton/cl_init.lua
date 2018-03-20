@@ -1,7 +1,7 @@
 DEFINE_BASECLASS("base_gmodentity")
 
 ENT.timeDelay = 0;
-
+ENT.Edic = -1;
 ENT.Initalized = false;
 
 function ENT:Initialize()

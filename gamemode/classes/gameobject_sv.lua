@@ -9,8 +9,7 @@ function GameObject:new(metaObject, gameobject, ply, pos, angle)
 	setmetatable( gameobject, metaObject );
 	
 	-- Add Game Object to global list of entities. 
-	gameobject:SetIndex(GameObject:GetIndex());
-	GameObject:IncrementIndex();
+	gameobject:SetEdic(GameObject:IssueEdic());
 	GameObject:AddGameObject(gameobject);
 	
 	local objectEntity = BW.utility:CreateEntity("ent_skeleton", pos, angle);
@@ -89,13 +88,10 @@ function GameObject:newProp(metaObject, gameobject, ent, ply)
 	gameobject:SetHealth(gameobject:GetMaxHealth());
 	
 	-- Add Game Object to global list of entities.
-	gameobject:SetIndex(GameObject.IndexNumber);
-	GameObject:IncrementIndex();
+	gameobject:SetEdic(GameObject:IssueEdic());
 	GameObject:AddGameObject(gameobject);
 	gameobject:SetType(metaObject.objectType);
 	ent:CallOnRemove( "RemoveGameObject", function( ent ) if (ent:GetObject()) then ent:GetObject():Remove() end end )
-	
-	ent:SetNWInt( 'EdicID', gameobject:GetIndex() )
 	
 	gameobject:SetEntity(ent);
 
@@ -118,12 +114,8 @@ function GameObject:newPlayer(metaObject, gameobject, ply)
 	setmetatable( gameobject, metaObject );
 	
 	--GameObject.Cache[ply] = {};	// CACHE
-	gameobject:SetIndex(GameObject.IndexNumber);
-	GameObject:IncrementIndex();
+	gameobject:SetEdic(GameObject:IssueEdic());
 	GameObject:AddGameObject(gameobject);
-	
-	-- We NEED TO DO this before we set the entity of the gameobject.
-	ply:SetNWInt( 'EdicID', gameobject:GetIndex() )
 	
 	gameobject:SetOwner(ply);
 	gameobject:SetEntity(ply);
@@ -149,8 +141,6 @@ function GameObject:SendGameObjectDataSingle(ply, gameobject)
 	if (!ply.GetObject || !ply:GetObject()) then
 		return;
 	end
-	
-	local entityIndex = gameobject:GetEntityID();
 	
 	BW.debug:PrintStatement( {"[Server] Sending singular GameObject data message to", ply:GetName(), " about: ", gameobject}, "Networking", BW.debug.enums.network.medium)
 	

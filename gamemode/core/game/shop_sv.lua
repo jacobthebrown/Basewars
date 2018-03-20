@@ -10,6 +10,8 @@ net.Receive("GameObject_Upgrade", function(len, ply)
 	
 	local gameobject = GameObject:GetGameObject(edic);
 	
+	PrintTable(gameobject)
+	
 	if (gameobject && gameobject.Upgrade) then
 		gameobject:Upgrade(upgradeID);	
 	end

@@ -1,24 +1,28 @@
 --//
 --//	Constructs a metatable for an incoming GameObject.
 --//
-function GameObject:new( metaObject, gameobject )
+function GameObject:new( metaObject, rawobject )
 
-
-	local ent = BW.utility:GetEntityByEdic(gameobject.entityEdic)
-
-	if (!ent || !ent:IsValid() || ent:GetObject()) then
+	local ent = ents.GetByIndex(rawobject.entityid) or BW.utility:GetEntityByEdic(rawobject.edic, rawobject.entity) or rawobject.entity;
+	
+	if (!ent || !ent:IsValid()) then
+		error("Entity did not exist or already had an object");
 		return nil;
-		--error("Client game object did not have a entity or already had a gameobject.")	
+	end
+	
+	if (ent:GetObject()) then
+		ent:GetObject():Remove();
+		print("overriding entity: "..ent:EntIndex().." | "..rawobject.entityid);	
 	end
 
 	-- Create a clone of the metatable of the GameObject.
-	setmetatable( gameobject, metaObject ) 
-	gameobject.InitializedTime = CurTime();
-	GameObject:AddGameObject(gameobject);
-	ent:SetObject(gameobject);
+	setmetatable( rawobject, metaObject ) 
+	rawobject.InitializedTime = CurTime();
+	GameObject:AddGameObject(rawobject);
+	ent:SetObject(rawobject);
 	ent:CallOnRemove( "RemoveGameObject", function( entity ) if (entity:GetObject()) then entity:GetObject():Remove() end end )
 	
-	return gameobject;
+	return rawobject;
 end
 
 --//////////////////////////////////////////////////////////////////////////////
@@ -29,14 +33,14 @@ end
 --//	Triggered when the server has sent client to the data about a
 --//	particular game object.
 --//
-function GameObject:RecieveGameObjectData()
+function GameObject.RecieveGameObjectData(length)
 
 	-- Read net data for game object
 	local rawobject = net.ReadTable();
 	
 	BW.debug:PrintStatement({"[Client] Client has recieved information about: ", rawobject}, "Networking" , BW.debug.enums.network.low) 
 	
-	GameObject:InitializeOrMerge(rawobject);
+	GameObject.InitializeOrMerge(rawobject);
 	
 end 
 net.Receive( "GameObject_SendGameObjectData_AboutOne", GameObject.RecieveGameObjectData)
@@ -45,44 +49,68 @@ net.Receive( "GameObject_SendGameObjectData_AboutOne", GameObject.RecieveGameObj
 --//	Triggered when the server has sent client to the data about a
 --//	many game objects.
 --//
-function GameObject:RecieveGameObjectsData()
+function GameObject.RecieveGameObjectsData(length)
+
+	if (length >= 500000) then
+		print("Upper Limit Reached");
+		return;
+	end
 	
 	local rawobjects = net.ReadTable();
 	
 	BW.debug:PrintStatement({"[Client] Client has recieved information about: ", rawobjects}, "Networking" , BW.debug.enums.network.high) 
 	
 	for k, rawobject in pairs (rawobjects) do
-		GameObject:InitializeOrMerge(rawobject);
+		GameObject.InitializeOrMerge(rawobject);
 	end
 end	
 net.Receive( "GameObject_SendGameObjectData_AboutMany", GameObject.RecieveGameObjectsData)
 
-function GameObject:InitializeOrMerge(rawobject, eventname, args)
+function GameObject.InitializeOrMerge(rawobject, eventname, args)
 
 	if (!rawobject) then
-		error("Raw object was nil")
+		error("Raw object was nil");
 		return nil;
 	end
 
-	local rawIndex = rawobject.objectIndex;
-	local ent = BW.utility:GetEntityByEdic(rawobject.entityEdic);
+	local rawEdic = rawobject.edic;
+	local ent = ents.GetByIndex(rawobject.entityid) or BW.utility:GetEntityByEdic(rawobject.edic, rawobject.entity) or rawobject.entity;
 	
-
 	-- If the entity doesn't exist for the client yet, we need to put it in the queue to load it.
 	if (!ent || !ent:IsValid()) then
-		GameObject.unloadedents[rawIndex] = GameObject.unloadedents[rawIndex] or {};
-		GameObject.unloadedents[rawIndex] = {rawobject = rawobject, eventname = eventname or nil, args = args or nil};
-	else
 		
-		local fetchedObject = GameObject:GetGameObject(rawobject.objectIndex);
+		local unloadedcache = GameObject.unloadedents[rawEdic];
+		
+		if (unloadedcache) then
+			if (rawobject.edic != unloadedcache.rawobject.edic) then
+				error("Edic Mismatch!!!!!!!!!!!!!!");
+				-- Flush cache on server and resend.
+			else
+				table.Merge(GameObject.unloadedents[rawEdic].rawobject, rawobject);
+			end
+		else
+			GameObject.unloadedents[rawEdic] = {rawobject = rawobject, eventname = eventname or nil, args = args or nil};
+		end
+
+		else
+	
+
+		local fetchedObject = GameObject:GetGameObject(rawobject.edic);
 	
 		if (!fetchedObject && GameObject.registry[rawobject.objectType]) then
-			
+	
 			local metaObject = GameObject.registry[rawobject.objectType];
 	    	return metaObject:new(rawobject);
+	    	
 	    else
-	    	table.Merge(fetchedObject, rawobject);
-	    	return fetchedObject;
+			if (rawobject.edic != fetchedObject.edic) then
+				error("Edic Mismatch!!!!!!!!!!!!!!");
+				-- Flush cache on server.
+			else
+	    		table.Merge(fetchedObject, rawobject);
+	    		--print("2b")
+	    		return fetchedObject;
+			end
 	    end
 	end
 
@@ -92,7 +120,7 @@ end
 --//
 --//	Triggered when the server has sent client to the data about a particular game object.
 --//
-function GameObject:RecieveTriggerEvent()
+function GameObject.RecieveTriggerEvent()
 
 	-- Read net data for event.
 	local rawobject = net.ReadTable();
@@ -103,7 +131,7 @@ function GameObject:RecieveTriggerEvent()
 	BW.debug:PrintStatement({"[Client] Client has recieved information about: ", rawobject, ", and the event triggered: ", eventname}, "Networking" , BW.debug.enums.network.high) 
 	
 	-- Find entity with given entity index.
-	local ent = rawobject.entityIndex;
+	local ent = rawobject.entityid;
 	
 	if (args.FLAGS && args.FLAGS.ENTREMOVED) then
 	-- If the entity has been removed by the time this event was triggered.
@@ -118,7 +146,7 @@ function GameObject:RecieveTriggerEvent()
 		return;
 	end
 	
-	local gameobject = GameObject:InitializeOrMerge(rawobject, eventname, args);
+	local gameobject = GameObject.InitializeOrMerge(rawobject, eventname, args);
 	
 	if (gameobject) then
 		gameobject[eventname](gameobject, args);
@@ -130,15 +158,17 @@ net.Receive( "GameObject_SendTriggerEvent", GameObject.RecieveTriggerEvent)
 --//////////////////////////////////////////////////////////////////////////////
 --///GameObject hooks---------------------------------------------------------/
 --////////////////////////////////////////////////////////////////////////////
-timer.Create( "LoadGameObject", .1, 0, function() 
+timer.Create( "LoadGameObject", 0.1, 0, function() 
 	
 	-- For all unloaded entity.
 	for k,v in pairs(GameObject.unloadedents) do
 		
 		-- Remove it from list.
-		GameObject.unloadedents[k] = nil;
+		local gameobject = GameObject.InitializeOrMerge(v.rawobject);
 		
-		local gameobject = GameObject:InitializeOrMerge(v.rawobject);
+		if (gameobject) then
+			GameObject.unloadedents[k] = nil;
+		end
 		
 		if (initalizedObject && v.eventname) then
 			gameobject[v.eventname](gameobject, args);				

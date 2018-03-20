@@ -18,7 +18,7 @@ Object.upgradetree = {
 		parent = {}
 	},
 	[2] = {
-		effect = {},
+		effects = {},
 		parent = {1}
 	}
 }
@@ -66,11 +66,11 @@ end
 --//
 function Object:Upgrade(upgradeID)
 
-	local upgrade = Object.upgradetree[upgradeID];
+	local upgrade = Object.upgradetree[upgradeIwD];
 
 	if (upgrade && !self.upgrades[upgradeID]) then
 	
-		table.insert(self.upgrades, upgradeID);
+		self.upgrades[upgradeID] = true;
 	
 		print("Upgrading");
 		

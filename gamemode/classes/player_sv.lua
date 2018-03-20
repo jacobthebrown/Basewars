@@ -5,6 +5,8 @@ Object.members = {
     settings = nil
 };
 
+Object.override = {};
+
 Object.members.settings = {
     CHAR = {}, 
     FRIENDS = {}, 
@@ -22,6 +24,8 @@ Object.members.settings = {
     },
     ADMIN = false
 };
+
+Object.FLAGS = { IMMORTAL = true };
 
 --//
 --//    Constructs a new object to store player data.
@@ -93,7 +97,10 @@ function Object:RemoveFriend(targetPlayer)
     end
 end
 
+Object.override["OnTakeDamage"] = true;
 function Object:OnTakeDamage(dmginfo)
+
+    print("yep")
 
     local ply = self:GetEntity();
     local newHealth = ply:Health() - dmginfo:GetBaseDamage();
@@ -111,6 +118,20 @@ function Object:OnPhysgunPickup()
 end
 
 GameObject:Register( "Object_Player", Object);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 concommand.Add( "addFriend", function( ply, cmd, args ) 
 

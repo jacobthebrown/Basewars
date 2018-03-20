@@ -8,9 +8,14 @@ for k, v in pairs (GameObject) do
 end
 GameObject.registry = {}; 
 GameObject.AllGameObjects = GameObject.AllGameObjects or {};
-GameObject.IndexNumber = GameObject.IndexNumber or 0;
-GameObject.IncrementIndex = function() GameObject.IndexNumber = GameObject.IndexNumber + 1 end;
-GameObject.GetIndex = function() return GameObject.IndexNumber end;
+GameObject.EdicCount = GameObject.EdicCount or 0;
+
+GameObject.IssueEdic = function() 
+	GameObject.EdicCount = GameObject.GetEdicCount() + 1 ;
+	return GameObject.GetEdicCount();
+end;
+
+GameObject.GetEdicCount = function() return GameObject.EdicCount end;
 
 --GameObject.Cache = {};	// CACHE
 GameObject.hooks = GameObject.hooks or { OnOwnerSpawn = {}, OnPhysgunPickup = {}, OnPlayerDeathThink = {}, OnPlayerDeath = {}, OnTakeDamage = {} };
@@ -27,36 +32,57 @@ GameObject.unloadedents = GameObject.unloadedents or {};
 --//
 --//	Registers the meta table of the object in the registry and adds base functions.
 --//
-function GameObject:Register(objectType, metaObject)
+function GameObject:Register(objectType, metaobject)
 	
-	metaObject.__index = metaObject;
+	metaobject.__index = metaobject;
+	metaobject.override = {};
 	
-	metaObject.SetHealth = function(obj, value) obj.health = value; end
-	metaObject.GetHealth = function(obj) return obj.health; end
-	metaObject.SetMaxHealth = function(obj, value) obj.maxHealth = value; end
-	metaObject.GetMaxHealth = function(obj) return obj.maxHealth; end
-	metaObject.SetIndex = function(obj, value) obj.objectIndex = value; end
-	metaObject.GetIndex = function(obj) return obj.objectIndex; end
-	
-	metaObject.SetEntity = function(obj, ent) 
-			obj.entity = ent;
-			obj.entityEdic = ent:GetNWInt('EdicID', nil); 
-		end
-
-		
-	metaObject.GetEntity = function(obj) 
-		return BW.utility:GetEntityByEdic(obj.entityEdic); 
+	metaobject.SetHealth = function(obj, value) 
+		obj.health = value; 
+	end
+	metaobject.GetHealth = function(obj) 
+		return obj.health; 
+	end
+	metaobject.SetMaxHealth = function(obj, value) 
+		obj.maxHealth = value; 
+	end
+	metaobject.GetMaxHealth = function(obj) 
+		return obj.maxHealth;
+	end
+	metaobject.SetEdic = function(obj, value) 
+		obj.edic = obj.edic or value;
+	end
+	metaobject.GetEdic = function(obj) 
+		return obj.edic; 
 	end
 	
-	metaObject.SetEntityID = function(obj, entID) obj.entityEdic = entID; end
-	metaObject.GetEntityID = function(obj) return obj.entityEdic; end
-	metaObject.GetType = function(obj) return objectType; end
-	metaObject.SetType = function(obj, objectType) obj.objectType = objectType; end
+	metaobject.SetEntity = function(obj, ent) 
+		
+		if (!ent:IsValid()) then error("Entity was not valid.") end
+		
+		obj.entity = ent;
+		obj.entityid = ent:EntIndex();
+		obj.entity:SetNWInt('EdicID', obj:GetEdic()); 
+	end
 
-	metaObject.objectType = objectType;
+	metaobject.GetEntity = function(obj) 
+		return obj.ent or ents.GetByIndex(obj.entityid) or BW.utility:GetEntityByEdic(obj.edic); 
+	end
 
-	metaObject.Remove = function(obj) GameObject:RemoveGameObject(obj); end
-	metaObject.SetOwner = function(obj, ply) 
+	metaobject.SetEntityID = function(obj, entid) 
+		error("Readonly.")
+	end
+	metaobject.GetEntityID = function(obj) 
+		return obj.entityid or obj.ent:EntIndex(); 
+	end
+	
+	metaobject.GetType = function(obj) return objectType; end
+	metaobject.SetType = function(obj, objectType) obj.objectType = objectType; end
+
+	metaobject.objectType = objectType;
+
+	metaobject.Remove = function(obj) GameObject:RemoveGameObject(obj); end
+	metaobject.SetOwner = function(obj, ply) 
 		
 		if (ply && isstring(ply)) then 
 			obj.owner = ply; return;
@@ -66,7 +92,7 @@ function GameObject:Register(objectType, metaObject)
 			obj.owner = nil;
 		end
 	end
-	metaObject.GetOwner = function(obj) 
+	metaobject.GetOwner = function(obj) 
 		if (obj.owner) then 
 			return player.GetBySteamID64(obj.owner);
 		end
@@ -74,7 +100,7 @@ function GameObject:Register(objectType, metaObject)
 	
 	-- Grabs all the member variables for the meta object and creates getters/setts
 	
-	local objectmembers = metaObject.members;
+	local objectmembers = metaobject.members;
 	
 	if (objectmembers) then
 		for k, v in pairs (objectmembers) do
@@ -83,19 +109,17 @@ function GameObject:Register(objectType, metaObject)
 			local getFunction = "Get"..memberName;
 			local setFunction = "Set"..memberName;
 			
-			metaObject[getFunction] = function(obj) return obj[k]; end
-			metaObject[setFunction] = function(obj, newValue) obj[k] = newValue; end
+			metaobject[getFunction] = function(obj) return obj[k]; end
+			metaobject[setFunction] = function(obj, newValue) obj[k] = newValue; end
 			
 		end
 	end
 	
-	metaObject.RunUpgradeHook = function(gameobject, hooktype, args)
+	metaobject.RunUpgradeHook = function(gameobject, hooktype, args)
 	
-		local metaobject = GameObject:GetMetaObject(gameobject:GetType());
+		local mo = GameObject:GetMetaObject(gameobject:GetType());
 		local updatedArguments = args;
-	
-		print(metaobject)
-		print(gameobject)
+
 		PrintTable(args)
 	
 		for k_upgrade, v_upgrade in pairs (gameobject.upgrades) do
@@ -103,7 +127,7 @@ function GameObject:Register(objectType, metaObject)
 			print(k_upgrade.." | "..v_upgrade);
 			--`PrintTa
 			
-			for k, v in pairs (metaobject.upgradetree[v_upgrade].effects) do
+			for k, v in pairs (mo.upgradetree[v_upgrade].effects) do
 				if (k == hooktype) then
 					updatedArguments = v(gameobject, args);
 				end
@@ -111,34 +135,38 @@ function GameObject:Register(objectType, metaObject)
 		end
 		
 	end
+	
+	if (!metaobject.override && !metaobject.override["OnTakeDamage"]) then
+	
+		metaobject.OnTakeDamage = function(obj, dmginfo)
 		
-	metaObject.OnTakeDamage = function(obj, dmginfo)
+			print("RIPRIRPPR")
+			--if (obj.OnTakeDamage) then
+			--	dmginfo = obj:OnTakeDamage(obj, dmginfo);
+			--end
+		
+			if (obj.upgrades) then
+				print(obj:RunUpgradeHook("OnTakeDamage", {dmginfo = dmginfo} ))
+				--dmginfo = --.dmginfo; -- or dmginfo;
+			end
+		
+	        if (CLIENT) then return end;
+	        
+			if (dmginfo:GetDamageType() == DMG_CRUSH) then
+				return;
+			end
+		
+			local totalDamage = math.floor((obj:GetHealth() or 0) - dmginfo:GetBaseDamage());
 	
-		--if (obj.OnTakeDamage) then
-		--	dmginfo = obj:OnTakeDamage(obj, dmginfo);
-		--end
-	
-		if (obj.upgrades) then
-			print(obj:RunUpgradeHook("OnTakeDamage", {dmginfo = dmginfo} ))
-			--dmginfo = --.dmginfo; -- or dmginfo;
-		end
-	
-        if (CLIENT) then return end;
-        
-		if (dmginfo:GetDamageType() == DMG_CRUSH) then
-			return;
-		end
-	
-		local totalDamage = math.floor((obj:GetHealth() or 0) - dmginfo:GetBaseDamage());
-
-		if (totalDamage <= 0) then
-			obj:Remove()
-		else
-			obj:SetHealth(totalDamage);
+			if (totalDamage <= 0) then
+				obj:Remove()
+			else
+				obj:SetHealth(totalDamage);
+			end
 		end
 	end
 	
-	GameObject.registry[objectType] = metaObject;
+	GameObject.registry[objectType] = metaobject;
 	
 end
 
@@ -170,14 +198,14 @@ end
 --//	Adds the game object from the global game object list.
 --//
 function GameObject:AddGameObject(gameobject)
-	GameObject.AllGameObjects[gameobject:GetIndex()] = gameobject;
+	GameObject.AllGameObjects[gameobject:GetEdic()] = gameobject;
 end
 
 --//
 --//	Get the game object from the global game object list.
 --//
-function GameObject:GetGameObject(objectIndex)
-	return GameObject.AllGameObjects[objectIndex];
+function GameObject:GetGameObject(edic)
+	return GameObject.AllGameObjects[edic];
 end
 
 --//
@@ -195,7 +223,7 @@ function GameObject:RemoveGameObject(gameobject)
 	
 	BW.debug:PrintStatement( {"Object has been removed: ", gameobject}, "GameObject", BW.debug.enums.gameobject.high)
 
-	GameObject.AllGameObjects[gameobject:GetIndex()] = nil;
+	GameObject.AllGameObjects[gameobject:GetEdic()] = nil;
 	
 	local ent = gameobject:GetEntity();
 	

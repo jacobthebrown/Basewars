@@ -25,3 +25,4 @@ function Object:Draw()
 end
 
 GameObject:Register( "Object_AmmoDispenser", Object);
+

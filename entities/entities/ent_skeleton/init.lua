@@ -17,8 +17,6 @@ function ENT:Initialize()
 		phys:Wake();
 	end
 	
-	self:SetNWInt( 'EdicID', self:GetObject():GetIndex() )
-	
 end
 
 function ENT:Use(activator, caller, USE_SET)

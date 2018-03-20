@@ -18,7 +18,7 @@ function Entity:SetObject(object)
     if (!object) then
         self.GameObjectID = object;      
     else
-        self.GameObjectID = object:GetIndex(); 
+        self.GameObjectID = object:GetEdic(); 
     end
 
 end 

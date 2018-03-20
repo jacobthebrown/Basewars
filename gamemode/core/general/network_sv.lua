@@ -39,10 +39,15 @@ function MODULE:InitNetworkTimers()
 		for i=1, #allplayers do
 			local objectsToUpdate = {};
 			
-			local entsInSphere = ents.FindInSphere(allplayers[i]:GetPos(), 512);
-			for j=1, #entsInSphere do
-				if (entsInSphere[j] && entsInSphere[j]:GetObject()) then
-					table.insert(objectsToUpdate, entsInSphere[j]:GetObject());
+				
+			if (!allplayers[i]:GetObject()) then
+				continue;
+			end
+			
+			local entsInPVS = ents.FindInPVS(allplayers[i]:GetPos());
+			for j=1, #entsInPVS do
+				if (entsInPVS[j] && entsInPVS[j]:GetObject()) then
+					table.insert(objectsToUpdate, entsInPVS[j]:GetObject());
 				end
 			end
 

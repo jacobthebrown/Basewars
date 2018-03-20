@@ -8,17 +8,33 @@ local MODULE = BW.hooks;
 --//
 function MODULE.InitializePlayerData(ply)
 	
+	--local gameobject = ply:GetObject();
+	--
+	--if (gameobject) then
+	--	gameobject:Remove();
+	--end
+	--
+	--local metaobject =  GameObject:GetMetaObject("Object_Player");	
+	--ply:SetObject(metaobject:new(ply));
+	
+end
+hook.Add( "PlayerFullyLoaded", "PlayerFullyLoaded_InitializePlayerData", MODULE.InitializePlayerData )	-- CUSTOM HOOK 'PlayerFullyLoaded'
+
+
+function MODULE.PlayerMoved(ply) 
+	
 	local gameobject = ply:GetObject();
 	
 	if (gameobject) then
-		gameobject:Remove();
+		return;
+		--gameobject:Remove();
 	end
 	
 	local metaobject =  GameObject:GetMetaObject("Object_Player");	
 	ply:SetObject(metaobject:new(ply));
 	
 end
-hook.Add( "PlayerFullyLoaded", "PlayerFullyLoaded_InitializePlayerData", MODULE.InitializePlayerData )	-- CUSTOM HOOK 'PlayerFullyLoaded'
+hook.Add("FinishMove", "FinishMove_PlayerMoved", MODULE.PlayerMoved);
 
 --//
 --//	Since bots don't render, we need to make sure they spawn with gameobject
