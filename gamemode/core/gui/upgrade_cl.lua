@@ -42,7 +42,7 @@ function MODULE:Loaded()
 	        enabled = false;
 	    end
 	    
-	    local query = string.format("CreateItem('upgradepanel', '%s', '%s', '%s', '%d', %s)", identity, name, desc, 100, enabled);
+	    local query = string.format("CreateItem('%s', '%s', '%s', '%d', %s)", identity, name, desc, 100, enabled);
 	    
 		self.gui:QueueJavascript(query);
 	end
@@ -50,9 +50,11 @@ end
 
 function MODULE:Buy(args)
 	
+	PrintTable(args);
+	
 	net.Start("GameObject_Upgrade");
 	net.WriteUInt(self.settings.args.gameobject:GetEdic(), 32);
-	net.WriteUInt(args.upgradeid, 8);
+	net.WriteUInt(args.objectid, 8);
 	net.SendToServer();
 	
 	self:Refresh();

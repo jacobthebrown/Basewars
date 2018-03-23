@@ -28,31 +28,46 @@ hook.Add("Initialize", "Initialize_InitializeNetworkStrings", MODULE.InitializeN
 --//
 function MODULE:InitNetworkTimers()
 	
+	-- On lua refresh, we don't want multiple timers wanging around.
 	if (timer.Exists( "Timer_NetworkGameObjects" )) then
 		timer.Remove( "Timer_NetworkGameObjects" )
 	end
 	
+	-- We localize this function to increase performance.
+	local funcFindHumans = player.GetHumans;
+	local funcFindInSphere = ents.FindInSphere;
+	
 	timer.Create( "Timer_NetworkGameObjects", 0.25, 0, function() 
 	
 		-- Iterate through all players and send them game object data.
-		local allplayers = player.GetAll();
+		local allplayers = funcFindHumans();
+		
+		-- Iterate through all players.
 		for i=1, #allplayers do
-			local objectsToUpdate = {};
 			
-				
-			if (!allplayers[i]:GetObject()) then
+			local objectsToUpdate = {};
+			local ply = allplayers[i];
+			
+			-- If player does not have an edic, we know they aren't initalized.
+			if (!ply:GetEdic()) then
 				continue;
 			end
 			
-			local entsInPVS = ents.FindInPVS(allplayers[i]:GetPos());
-			for j=1, #entsInPVS do
-				if (entsInPVS[j] && entsInPVS[j]:GetObject()) then
-					table.insert(objectsToUpdate, entsInPVS[j]:GetObject());
+			local entsInSphere = funcFindInSphere(ply:GetPos(), 512);
+			
+			for j=1, #entsInSphere do
+				
+				local ent = entsInSphere[j];
+				
+				-- If entity has an edic, it has a object attached to it..
+				if (ent && ent:GetEdic()) then
+					table.insert(objectsToUpdate, ent:GetObject());
 				end
 			end
 
+			-- Send uncached objects to player.
 			if (!table.IsEmpty(objectsToUpdate)) then
-				GameObject:SendGameObjectDataMany(allplayers[i], objectsToUpdate);
+				GameObject:SendGameObjectDataMany(ply, objectsToUpdate);
 			end
 		
 		end

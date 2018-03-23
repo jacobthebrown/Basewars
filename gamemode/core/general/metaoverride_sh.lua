@@ -5,20 +5,31 @@ local Entity = FindMetaTable("Entity")
 --//
 function Entity:GetObject() 
 
-    if (!self.GameObjectID) then
+    -- Grab entitie's edic.
+    local edic = self:GetNWInt("EdicID", nil);
+
+    -- If entity has no edic, return nil.
+    if (!edic) then
         return nil;
     end
-    return GameObject:GetGameObject(self.GameObjectID);
+
+    -- If self.gameobject is valid, return or go and find the object.
+    return self.gameobject or GameObject:GetGameObject(edic);
 end 
 
 --//
 --//    Sets the GameObject attached to this source entity.
 --//
-function Entity:SetObject(object)
-    if (!object) then
-        self.GameObjectID = object;      
+function Entity:SetObject(ObjectOrEdic)
+    
+    if (isobject(ObjectOrEdic)) then
+        self:SetNWInt('EdicID', ObjectOrEdic.edic); 
+        self.gameobject = ObjectOrEdic;
+    elseif (isnumber(ObjectOrEdic)) then
+        self:SetNWInt('EdicID', ObjectOrEdic);
+        self.gameobject = GameObject:GetGameObject(ObjectOrEdic);
     else
-        self.GameObjectID = object:GetEdic(); 
+        error("Tried to set an entities object as null.")
     end
 
 end 
@@ -26,13 +37,13 @@ end
 --//
 --//    Returns the GameObject ID attached to this source entity.
 --//
-function Entity:GetObjectID() 
-    return self.GameObjectID;
+function Entity:GetEdic()
+    return self:GetNWInt( "EdicID", nil );
 end 
 
 --//
 --//    Sets the GameObject ID attached to this source entity.
 --//
-function Entity:SetObjectID(objectID) 
-    self.GameObjectID = objectID; 
-end 
+--function Entity:SetEdic(edic) 
+--    self:SetNWInt('EdicID', edic);
+--end 

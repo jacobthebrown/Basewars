@@ -8,15 +8,18 @@ function ENT:Initialize()
 
 end
 
-function ENT:Draw()
-	self:DrawModel();
-end
+--function ENT:Draw()
+--	self:DrawModel();
+--end
 
 function ENT:OnRemove()
 	
-	local gameobject = self:GetObject() or nil;
+	local gameobject = self:GetObject();
 	
-	if (gameobject || (gameobject && gameobject.FLAGS && gameobject.FLAGS.ENTREMOVED) ) then
+	if (gameobject) then -- || (gameobject && gameobject.FLAGS && gameobject.FLAGS.ENTREMOVED) ) then
 		gameobject:Remove();
+		
+		BW.debug:PrintStatement( {"GameObject was removed: ", object}, "GameObject", BW.debug.enums.gameobject.low)
+
 	end
 end

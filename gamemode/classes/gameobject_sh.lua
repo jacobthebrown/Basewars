@@ -34,76 +34,146 @@ GameObject.unloadedents = GameObject.unloadedents or {};
 --//
 function GameObject:Register(objectType, metaobject)
 	
+	-- Allow meta object to index itself.
 	metaobject.__index = metaobject;
+	
+	-- Table for function overrides for the object.
 	metaobject.override = {};
 	
+	--
+	-- Sets the health of the object.
+	--
 	metaobject.SetHealth = function(obj, value) 
 		obj.health = value; 
 	end
+	
+	--
+	-- Get the health of the object.
+	--
 	metaobject.GetHealth = function(obj) 
 		return obj.health; 
 	end
+	
+	--
+	--	Set max health of the object.
+	--
 	metaobject.SetMaxHealth = function(obj, value) 
 		obj.maxHealth = value; 
 	end
+	
+	--
+	-- Get max health of the object.
+	--
 	metaobject.GetMaxHealth = function(obj) 
 		return obj.maxHealth;
 	end
+	
+	--
+	-- Sets the 'edic' of the object. (An Edic is a truly gameobject unique ID);
+	--
 	metaobject.SetEdic = function(obj, value) 
 		obj.edic = obj.edic or value;
 	end
+	
+	--
+	-- Get the 'edic' of the object.
+	--
 	metaobject.GetEdic = function(obj) 
 		return obj.edic; 
 	end
 	
+	--
+	-- Set the entity of the object.
+	--
 	metaobject.SetEntity = function(obj, ent) 
 		
+		-- If entity is invalid, error out.
 		if (!ent:IsValid()) then error("Entity was not valid.") end
 		
 		obj.entity = ent;
 		obj.entityid = ent:EntIndex();
-		obj.entity:SetNWInt('EdicID', obj:GetEdic()); 
-	end
-
-	metaobject.GetEntity = function(obj) 
-		return obj.ent or ents.GetByIndex(obj.entityid) or BW.utility:GetEntityByEdic(obj.edic); 
-	end
-
-	metaobject.SetEntityID = function(obj, entid) 
-		error("Readonly.")
-	end
-	metaobject.GetEntityID = function(obj) 
-		return obj.entityid or obj.ent:EntIndex(); 
 	end
 	
-	metaobject.GetType = function(obj) return objectType; end
-	metaobject.SetType = function(obj, objectType) obj.objectType = objectType; end
+	--
+	-- Get the entity of the object.
+	--
+	metaobject.GetEntity = function(obj) 
+		return obj.entity or ents.GetByIndex(obj.entityid) or BW.utility:GetEntityByEdic(obj.edic); 
+	end
 
+	--
+	-- EntityID is read only.
+	--
+	metaobject.SetEntityID = function(obj, entid) 
+		--error("SetEntityID is Readonly.")
+	end
+	
+	--
+	-- Gets the object's entity id.
+	--
+	metaobject.GetEntityID = function(obj) 
+		return obj.entityid or obj.entity:EntIndex(); 
+	end
+	
+	--
+	-- Sets the object's type.
+	--
+	metaobject.SetType = function(obj, objectType) 
+		obj.objectType = objectType; 
+	end
+	
+	--
+	-- Gets the object's type.
+	--
+	metaobject.GetType = function(obj) 
+		return obj.objectType; 
+	end
+	
+	-- Set initial type.
 	metaobject.objectType = objectType;
 
-	metaobject.Remove = function(obj) GameObject:RemoveGameObject(obj); end
+	--
+	--	Removes the game object from the game.
+	--
+	metaobject.Remove = function(obj) 
+		GameObject:RemoveGameObject(obj); 
+	end
+	
+	--
+	--	Sets the owner of the object.
+	--
 	metaobject.SetOwner = function(obj, ply) 
 		
 		if (ply && isstring(ply)) then 
-			obj.owner = ply; return;
-		elseif (ply && ply:IsPlayer()) then 
-			obj.owner = ply:SteamID64(); return;
+			
+			-- If we were given a SteamID64, we don't need to convert.
+			obj.owner = ply; 
+			obj.ownerentity = player.GetBySteamID64(ply);
+			return;
+			
+		elseif (ply && ply:IsPlayer()) then
+			obj.owner = ply:SteamID64();
+			obj.ownerentity = ply;
+			return;
 		else
-			obj.owner = nil;
+			error("Can not set nil value for owner or owner was not a player.");
 		end
 	end
+	
+	--
+	-- Gets the owner of the object.
+	--
 	metaobject.GetOwner = function(obj) 
 		if (obj.owner) then 
-			return player.GetBySteamID64(obj.owner);
+			return obj.ownerentity or player.GetBySteamID64(obj.owner);
 		end
 	end
 	
 	-- Grabs all the member variables for the meta object and creates getters/setts
+	local members = metaobject.members;
 	
-	local objectmembers = metaobject.members;
-	
-	if (objectmembers) then
-		for k, v in pairs (objectmembers) do
+	if (members) then
+		for k, v in pairs (members) do
 			
 			local memberName = string.upper(string.sub( k, 1, 1))..string.sub(k, 2);
 			local getFunction = "Get"..memberName;
@@ -117,17 +187,11 @@ function GameObject:Register(objectType, metaobject)
 	
 	metaobject.RunUpgradeHook = function(gameobject, hooktype, args)
 	
-		local mo = GameObject:GetMetaObject(gameobject:GetType());
 		local updatedArguments = args;
-
-		PrintTable(args)
 	
 		for k_upgrade, v_upgrade in pairs (gameobject.upgrades) do
 			
-			print(k_upgrade.." | "..v_upgrade);
-			--`PrintTa
-			
-			for k, v in pairs (mo.upgradetree[v_upgrade].effects) do
+			for k, v in pairs (metaobject.upgradetree[v_upgrade].effects) do
 				if (k == hooktype) then
 					updatedArguments = v(gameobject, args);
 				end
@@ -136,18 +200,12 @@ function GameObject:Register(objectType, metaobject)
 		
 	end
 	
-	if (!metaobject.override && !metaobject.override["OnTakeDamage"]) then
-	
+	if (!metaobject.override["OnTakeDamage"]) then
+		
 		metaobject.OnTakeDamage = function(obj, dmginfo)
 		
-			print("RIPRIRPPR")
-			--if (obj.OnTakeDamage) then
-			--	dmginfo = obj:OnTakeDamage(obj, dmginfo);
-			--end
-		
 			if (obj.upgrades) then
-				print(obj:RunUpgradeHook("OnTakeDamage", {dmginfo = dmginfo} ))
-				--dmginfo = --.dmginfo; -- or dmginfo;
+				obj:RunUpgradeHook("OnTakeDamage", {dmginfo = dmginfo} );
 			end
 		
 	        if (CLIENT) then return end;
@@ -231,9 +289,9 @@ function GameObject:RemoveGameObject(gameobject)
 		ent:Remove();	
 	end
 	
-	if (CLIENT && ent) then
-		ent:SetObject(nil);
-	end
+	--if (CLIENT && ent) then
+	--	ent:SetObject(nil);
+	--1end
 	
 	for k, v in pairs (GameObject.hooks) do
 		table.RemoveByValue(v, gameobject);

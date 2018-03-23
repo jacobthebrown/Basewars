@@ -131,6 +131,13 @@ function MODULE:GetEntityByEdic(edicID, prediction)
 
 end
 
+function isobject(object)
+	if (object && object.edic) then
+		return true;
+	else
+		return false;
+	end
+end
 
 function MODULE:TableToStringDetailed( tbl, indent, done )
 

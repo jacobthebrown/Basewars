@@ -1,54 +1,59 @@
-function GameObject:new(metaObject, gameobject, ply, pos, angle)
+function GameObject:new(metaObject, object, ply, pos, angle)
 	
-	-- Check if player that created the gameobjectect, exists.
+	-- Check if player that created the gameobject, exists.
 	if (!ply || !ply:IsPlayer()) then
 		return nil;
 	end
 	
 	-- Create a clone of the metatable of the game object.
-	setmetatable( gameobject, metaObject );
+	setmetatable( object, metaObject );
 	
-	-- Add Game Object to global list of entities. 
-	gameobject:SetEdic(GameObject:IssueEdic());
-	GameObject:AddGameObject(gameobject);
+	-- Issue object an edic. 
+	object:SetEdic(GameObject:IssueEdic());
 	
-	local objectEntity = BW.utility:CreateEntity("ent_skeleton", pos, angle);
-	objectEntity:SetObject(gameobject);
-	objectEntity:Spawn();
+	-- The gameobject's physical form is an entity.
+	local ent = BW.utility:CreateEntity("ent_skeleton", pos, angle);
+	ent:SetObject(object);
 	
-	-- Assign ownership, give health, set entity, and set gameobject type.
-	gameobject:SetOwner(ply);
-	gameobject:SetHealth(gameobject:GetMaxHealth());
-	gameobject:SetEntity(objectEntity);
-	gameobject:SetType(metaObject.objectType);
+	PrintTable(ent:GetObject());
+	ent:Spawn();
+	
+	-- Assign ownership, give health, set object type, and set entity.
+	object:SetOwner(ply);
+	object:SetHealth(object:GetMaxHealth());
+	object:SetType(metaObject.objectType);
+	object:SetEntity(ent);
+
+	-- Add object to global object's list.
+	GameObject:AddGameObject(object);
 
 	---Game Object Flags Handled Here-------------------------------------------
 	
 	-- If game object should be spawned frozen.
 	if (metaObject.FLAGS && metaObject.FLAGS.FROZEN) then
-		if gameobject and objectEntity:IsValid() then
-			objectEntity:GetPhysicsObject():EnableMotion(false);
+		if object and ent:IsValid() then
+			ent:GetPhysicsObject():EnableMotion(false);
 		end
 	elseif (metaObject.FLAGS == nil || metaObject.FLAGS.FROZEN == nil) then
-		objectEntity:GetPhysicsObject():EnableMotion(false);
+		ent:GetPhysicsObject():EnableMotion(false);
 	end
 	
 	-- If game object has custom collisions.
 	if (metaObject.FLAGS && metaObject.FLAGS.COLLISION) then
-		objectEntity:SetCollisionGroup(metaObject.FLAGS.COLLISION);
+		ent:SetCollisionGroup(metaObject.FLAGS.COLLISION);
 	end
 	
 	-- If game object must be spawned on the ground.
 	if (metaObject.FLAGS && metaObject.FLAGS.ONGROUND) then
 		
 		local tr = util.TraceLine( {
-			start = objectEntity:GetPos(),
-			endpos = objectEntity:GetPos() - Vector(0,0,2);
+			start = ent:GetPos(),
+			endpos = ent:GetPos() - Vector(0,0,2);
 			filter = function(ent) return ent:IsWorld() end
 		} )
 		
 		if (!tr.Hit) then
-			objectEntity:Remove();
+			ent:Remove();
 			return error("GameObject (Error): This object can only be spawned on a flat surface, on the ground.");
 		end
 	end
@@ -58,22 +63,27 @@ function GameObject:new(metaObject, gameobject, ply, pos, angle)
 		--metaObject.FLAGS.UNMOVEABLE = true;
 	end
 
+	---Game Object Hooks are handled here---------------------------------------
+
+	-- It is expensive to find functions, therefore we take the function out of it's loop.
+	--local reghook = GameObject.RegisterHook;
+
 	-- If game object has any hook functions, we add it to the hook function register.
 	for kHook, vHook in pairs (GameObject.hooks) do
 		for kFunc, vFunc in pairs (metaObject) do
 			if (isfunction(vFunc) && kHook == kFunc) then
-				GameObject:RegisterHook(metaObject, vFunc, gameobject);				
+				GameObject:RegisterHook(metaObject, vFunc, object);				
 			end
 		end
 	end
 
-	return gameobject;
+	return object;
 end
 
 --//
 --//	Constructs a metatable for an incoming GameObject.
 --//
-function GameObject:newProp(metaObject, gameobject, ent, ply)
+function GameObject:newProp(metaObject, object, ent, ply)
 
 	-- Check if player that created the GameObject, exists.
 	if (!ply || !ply:IsPlayer()) then
@@ -81,52 +91,56 @@ function GameObject:newProp(metaObject, gameobject, ent, ply)
 	end
 	
 	-- Create a clone of the metatable of the game object.
-	setmetatable( gameobject, metaObject );
+	setmetatable( object, metaObject );
 	
 	-- Assign ownership and gain health.
-	gameobject:SetOwner(ply);
-	gameobject:SetHealth(gameobject:GetMaxHealth());
+	object:SetOwner(ply);
+	object:SetHealth(object:GetMaxHealth());
 	
 	-- Add Game Object to global list of entities.
-	gameobject:SetEdic(GameObject:IssueEdic());
-	GameObject:AddGameObject(gameobject);
-	gameobject:SetType(metaObject.objectType);
-	ent:CallOnRemove( "RemoveGameObject", function( ent ) if (ent:GetObject()) then ent:GetObject():Remove() end end )
+	object:SetEdic(GameObject:IssueEdic());
+	object:SetType(metaObject.objectType);
+	object:SetEntity(ent);
 	
-	gameobject:SetEntity(ent);
+	-- Hook onto the entities remove funciton, to delete the object.
+	ent:CallOnRemove( "RemoveGameObject", function( ent ) 
+		
+		local object = ent:GetObject();
+		
+		if (object) then 
+			BW.debug:PrintStatement( {"GameObject is being removed: ", object}, "GameObject", BW.debug.enums.gameobject.low);
+			object:Remove() 
+		end 
+	end)
+	
+	-- Add object to global object's list.
+	GameObject:AddGameObject(object);
 
-
-
-	return gameobject;
+	return object;
 end
 
 --//
 --//	Constructs a metatable for an incoming GameObject which is a player.
 --//
-function GameObject:newPlayer(metaObject, gameobject, ply)
+function GameObject:newPlayer(metaObject, object, ply)
 	
 	-- Check if player that created the GameObject, exists.
-	if (!gameobject || !ply:IsPlayer()) then
+	if (!object || !ply:IsPlayer()) then
 		return nil;
 	end
 	
 	-- Create a clone of the metatable of the game object.
-	setmetatable( gameobject, metaObject );
+	setmetatable( object, metaObject );
 	
-	--GameObject.Cache[ply] = {};	// CACHE
-	gameobject:SetEdic(GameObject:IssueEdic());
-	GameObject:AddGameObject(gameobject);
+	object:SetEdic(GameObject:IssueEdic());
+	object:SetOwner(ply);
+	object:SetEntity(ply);
+	object:SetType(metaObject.objectType);
 	
-	gameobject:SetOwner(ply);
-	gameobject:SetEntity(ply);
-	gameobject:SetType(metaObject.objectType);
+	-- Add object to global object's list.
+	GameObject:AddGameObject(object);
 	
-
-	return gameobject;
-end
-
-function GameObject:GetAttachedEntities()
-	return GameObject.AllAttachedEntities;	
+	return object;
 end
 
 --//////////////////////////////////////////////////////////////////////////////
@@ -136,44 +150,40 @@ end
 --//
 --//	Sends GameObject data for a single game object to all clients.
 --//
-function GameObject:SendGameObjectDataSingle(ply, gameobject)
+function GameObject:SendGameObjectDataSingle(ply, object)
 	
 	if (!ply.GetObject || !ply:GetObject()) then
 		return;
 	end
 	
-	BW.debug:PrintStatement( {"[Server] Sending singular GameObject data message to", ply:GetName(), " about: ", gameobject}, "Networking", BW.debug.enums.network.medium)
+	BW.debug:PrintStatement( {"[Server] Sending singular GameObject data message to", ply:GetName(), " about: ", object}, "Networking", BW.debug.enums.network.medium)
 	
 	net.Start("GameObject_SendGameObjectData_AboutOne");
-	net.WriteTable(gameobject);
+	net.WriteTable(object);
 	net.Send(ply);
 end
 
 --//
 --//	Sends GameData about many game object to all clients.
 --//
-function GameObject:SendGameObjectDataMany(ply, gameobjects)
+function GameObject:SendGameObjectDataMany(ply, objects)
 	
-	BW.debug:PrintStatement( {"[Server] Sending GameObject data about many game objects to ", ply:GetName(), ": ", gameobjects}, "Networking", BW.debug.enums.network.low)
+	BW.debug:PrintStatement( {"[Server] Sending GameObject data about many game objects to ", ply:GetName(), ": ", objects}, "Networking", BW.debug.enums.network.low)
 
 	net.Start("GameObject_SendGameObjectData_AboutMany");
-	net.WriteTable(gameobjects);
+	net.WriteTable(objects);
 	net.Send(ply);
 end
 
 --//
 --//	Sends GameObject data for a single game object to all clients.
 --//
-function GameObject:TriggerEventLocal(ply, gameobject, event, args) 
+function GameObject:TriggerEventLocal(ply, object, event, args)
 	
-	if (!ply.GetObject || !ply:GetObject()) then
-		return;	
-	end
-	
-	BW.debug:PrintStatement( {"[Server] Sending GameObject data to local: ", ply:GetName(), " ", gameobject}, "Networking", BW.debug.enums.network.medium)
+	BW.debug:PrintStatement( {"[Server] Sending GameObject data to local: ", ply:GetName(), " ", object}, "Networking", BW.debug.enums.network.medium)
 
 	net.Start("GameObject_SendTriggerEvent");
-	net.WriteTable(gameobject);
+	net.WriteTable(object);
 	net.WriteString(event);
 	net.WriteTable(args or {});
 	net.Send(ply);
@@ -182,7 +192,7 @@ end
 --//
 --//	Sends Event for a single game object to all clients.
 --//
-function GameObject:TriggerEventInSphere(pos, radius, gameobject, event, args) 
+function GameObject:TriggerEventInSphere(pos, radius, object, event, args) 
 	
 	local playersInRegion = {};
 	for k, v in pairs (ents.FindInSphere( pos, radius )) do
@@ -194,7 +204,7 @@ function GameObject:TriggerEventInSphere(pos, radius, gameobject, event, args)
 	end
 	
 	net.Start("GameObject_SendTriggerEvent");
-	net.WriteTable(gameobject);
+	net.WriteTable(object);
 	net.WriteString(event);
 	net.WriteTable(args or {});
 	net.Send(playersInRegion);
@@ -204,13 +214,27 @@ end
 --//
 --//	Sends Event for a single game object to all clients.
 --//
-function GameObject:TriggerEventGlobal(gameobject, event, args) 
+function GameObject:TriggerEventGlobal(object, event, args) 
 	
-	net.Start("GameObject_SendTriggerEvent");
-	net.WriteTable(gameobject);
-	net.WriteString(event);
-	net.WriteTable(args or {});
-	net.Broadcast();
+	local ent = object:GetEntity();
+	
+	if (ent) then
+		ent.transmitting = true;
+		ent:AddEFlags( EFL_FORCE_CHECK_TRANSMIT )
+	end
+	
+	-- This is always going to be a race condition between transmitting the entity
+	-- and broadcasting the entitie's object, so I gotta figure out a solution.
+	timer.Simple(0.1, function() 
+		ent.transmitting = nil;
+		ent:AddEFlags( EFL_FORCE_CHECK_TRANSMIT )
+		
+		net.Start("GameObject_SendTriggerEvent");
+		net.WriteTable(object);
+		net.WriteString(event);
+		net.WriteTable(args or {});
+		net.Broadcast();
+	end)
 end
 
 --//////////////////////////////////////////////////////////////////////////////
@@ -231,10 +255,10 @@ end )
 
 hook.Add( "PhysgunPickup", "GameObject_OnPhysgunPickup", function( ply, ent )
 	
-	local gameobject = ent:GetObject()
+	local object = ent:GetObject()
 	
-	if (gameobject && gameobject.OnPhysgunPickup) then
-		return gameobject:OnPhysgunPickup(ply);
+	if (object && object.OnPhysgunPickup) then
+		return object:OnPhysgunPickup(ply);
 	end
 end )
 

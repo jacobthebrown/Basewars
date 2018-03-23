@@ -17,7 +17,10 @@ function MODULE:DamageReducer(dmgtype, reduction)
 end
 
 function MODULE:HealthIncreaser(increase)
-
    return function(obj) obj:SetMaxHealth(obj:GetMaxHealth() + increase); obj:SetHealth(obj:GetMaxHealth()); end
+end
+
+function MODULE:HealthDecreaser(decrease)
+   return function(obj) obj:SetMaxHealth(obj:GetMaxHealth() - decrease); obj:SetHealth(obj:GetMaxHealth()); end
 end
 

@@ -66,11 +66,11 @@ end
 --//
 function Object:Upgrade(upgradeID)
 
-	local upgrade = Object.upgradetree[upgradeIwD];
+	local upgrade = Object.upgradetree[upgradeID];
 
-	if (upgrade && !self.upgrades[upgradeID]) then
+	if (upgrade && !table.HasValue(self.upgrades, upgradeID)) then
 	
-		self.upgrades[upgradeID] = true;
+		table.insert(self.upgrades, upgradeID);
 	
 		print("Upgrading");
 		

@@ -8,14 +8,14 @@ local MODULE = BW.hooks;
 --//
 function MODULE.InitializePlayerData(ply)
 	
-	--local gameobject = ply:GetObject();
-	--
-	--if (gameobject) then
-	--	gameobject:Remove();
-	--end
-	--
-	--local metaobject =  GameObject:GetMetaObject("Object_Player");	
-	--ply:SetObject(metaobject:new(ply));
+	local gameobject = ply:GetObject();
+	
+	if (gameobject) then
+		gameobject:Remove();
+	end
+	
+	local metaobject = GameObject:GetMetaObject("Object_Player");	
+	ply:SetObject(metaobject:new(ply));
 	
 end
 hook.Add( "PlayerFullyLoaded", "PlayerFullyLoaded_InitializePlayerData", MODULE.InitializePlayerData )	-- CUSTOM HOOK 'PlayerFullyLoaded'
@@ -23,15 +23,15 @@ hook.Add( "PlayerFullyLoaded", "PlayerFullyLoaded_InitializePlayerData", MODULE.
 
 function MODULE.PlayerMoved(ply) 
 	
-	local gameobject = ply:GetObject();
-	
-	if (gameobject) then
-		return;
-		--gameobject:Remove();
-	end
-	
-	local metaobject =  GameObject:GetMetaObject("Object_Player");	
-	ply:SetObject(metaobject:new(ply));
+	--local gameobject = ply:GetObject();
+	--
+	--if (gameobject) then
+	--	return;
+	--	--gameobject:Remove();
+	--end
+	--
+	--local metaobject =  GameObject:GetMetaObject("Object_Player");	
+	--ply:SetObject(metaobject:new(ply));
 	
 end
 hook.Add("FinishMove", "FinishMove_PlayerMoved", MODULE.PlayerMoved);
