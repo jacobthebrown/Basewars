@@ -5,7 +5,6 @@ Object.members = {
 	balance = 0, 
 	maxBalance = 1000, 
 	printAmount = 10,
-	upgrades = {}
 };
 
 Object.upgradetree = {

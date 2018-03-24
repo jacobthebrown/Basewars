@@ -3,12 +3,21 @@
 --//
 function GameObject:new( metaObject, rawobject )
 
-	local ent = ents.GetByIndex(rawobject.entityid) or BW.utility:GetEntityByEdic(rawobject.edic, rawobject.entity) or rawobject.entity;
+	local ent = nil;
+
+	-- If the client already knows about the entity, then we assign it, otherwise: go search for it.
+	if (rawobject.entity && rawobject.entity:IsValid()) then
+		ent = rawobject.entity;
+	else
+		ent = ents.GetByIndex(rawobject.entityid) or BW.utility:GetEntityByEdic(rawobject.edic, rawobject.entity) or rawobject.entity;
+	end
 	
+	-- If we couldn't find the entity, then we messed up somehow.
 	if (!ent || !ent:IsValid()) then
 		error("Entity did not exist or already had an object");
 		return nil;
 	end
+	
 	
 	if (ent:GetObject()) then
 		ent:GetObject():Remove();
@@ -20,7 +29,16 @@ function GameObject:new( metaObject, rawobject )
 	rawobject.InitializedTime = CurTime();
 	GameObject:AddGameObject(rawobject);
 	ent:SetObject(rawobject);
-	ent:CallOnRemove( "RemoveGameObject", function( entity ) if (entity:GetObject()) then entity:GetObject():Remove() end end )
+	ent:CallOnRemove( "RemoveGameObject", function(entity) 
+		
+		local object = entity:GetObject();
+		
+		if (object) then 
+			object:Remove();
+		else 
+			error("RemoveGameObject Hook: object did not exist.");
+		end 
+	end);
 	
 	return rawobject;
 end
@@ -52,7 +70,7 @@ net.Receive( "GameObject_SendGameObjectData_AboutOne", GameObject.RecieveGameObj
 function GameObject.RecieveGameObjectsData(length)
 
 	if (length >= 500000) then
-		print("Upper Limit Reached");
+		error("WARNING: NET Library Has Hit Upper Limit Reached");
 		return;
 	end
 	
@@ -68,28 +86,30 @@ net.Receive( "GameObject_SendGameObjectData_AboutMany", GameObject.RecieveGameOb
 
 function GameObject.InitializeOrMerge(rawobject, eventname, args)
 
+	-- If the raw object was somehow nil.
 	if (!rawobject) then
 		error("Raw object was nil");
 		return nil;
 	end
 
-	local rawEdic = rawobject.edic;
+	-- 
+	local rawedic = rawobject.edic;
 	local ent = ents.GetByIndex(rawobject.entityid) or BW.utility:GetEntityByEdic(rawobject.edic, rawobject.entity) or rawobject.entity;
 	
 	-- If the entity doesn't exist for the client yet, we need to put it in the queue to load it.
 	if (!ent || !ent:IsValid()) then
 		
-		local unloadedcache = GameObject.unloadedents[rawEdic];
+		local unloadedcache = GameObject.unloadedents[rawedic];
 		
 		if (unloadedcache) then
 			if (rawobject.edic != unloadedcache.rawobject.edic) then
 				error("Edic Mismatch!!!!!!!!!!!!!!");
 				-- Flush cache on server and resend.
 			else
-				table.Merge(GameObject.unloadedents[rawEdic].rawobject, rawobject);
+				table.Merge(GameObject.unloadedents[rawedic].rawobject, rawobject);
 			end
 		else
-			GameObject.unloadedents[rawEdic] = {rawobject = rawobject, eventname = eventname or nil, args = args or nil};
+			GameObject.unloadedents[rawedic] = {rawobject = rawobject, eventname = eventname or nil, args = args or nil};
 		end
 
 		else
@@ -180,25 +200,29 @@ end)
 	
 hook.Add( "PostDrawOpaqueRenderables", "GameObject_RenderAll", function()
 	
-	for k, v in pairs(ents.GetAll()) do
-		if (v:GetObject()) then
-			if (v:GetObject().Draw && LocalPlayer():GetPos():DistToSqr(v:GetPos()) < 262144) then
-				v:GetObject():Draw();
-			end
-			if (v:GetObject().DrawGlobal) then
-				v:GetObject():DrawGlobal();
-			end
+	for k, object in pairs(GameObject:GetAllGameObjects()) do
+		
+		local ent = object:GetEntity();
+		
+		if (!ent:IsValid()) then
+			error("GameObject has a null entity.")
 		end
+		
+		if (object.Draw && LocalPlayer():GetPos():DistToSqr(ent:GetPos()) < 262144) then
+			object:Draw();
+		end
+		
+		if (object.DrawGlobal) then
+			object:DrawGlobal();
+		end
+		
 	end
 end )
 
 hook.Add( "HUDPaint", "GameObject_RenderHUD", function()
-	
-	for k, v in pairs(ents.GetAll()) do
-		if (v:GetObject()) then
-			if (v:GetObject().DrawHUD && v:GetObject():GetOwner() == LocalPlayer()) then
-				v:GetObject():DrawHUD();
-			end
+	for k, object in pairs(GameObject:GetAllGameObjects()) do
+		if (object.DrawHUD && object:GetOwner() == LocalPlayer()) then
+			object:DrawHUD();
 		end
 	end
 end )

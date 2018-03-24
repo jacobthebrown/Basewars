@@ -1,5 +1,7 @@
 local Object = {};
 
+Object.FLAGS = { UNBUYABLE = true };
+
 --//
 --//	Constructs a money printer object.
 --//

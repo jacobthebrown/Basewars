@@ -1,3 +1,6 @@
+--//
+--//
+--//
 function GameObject:new(metaObject, object, ply, pos, angle)
 	
 	-- Check if player that created the gameobject, exists.
@@ -14,8 +17,6 @@ function GameObject:new(metaObject, object, ply, pos, angle)
 	-- The gameobject's physical form is an entity.
 	local ent = BW.utility:CreateEntity("ent_skeleton", pos, angle);
 	ent:SetObject(object);
-	
-	PrintTable(ent:GetObject());
 	ent:Spawn();
 	
 	-- Assign ownership, give health, set object type, and set entity.
@@ -23,6 +24,7 @@ function GameObject:new(metaObject, object, ply, pos, angle)
 	object:SetHealth(object:GetMaxHealth());
 	object:SetType(metaObject.objectType);
 	object:SetEntity(ent);
+	object:SetUpgrades({});
 
 	-- Add object to global object's list.
 	GameObject:AddGameObject(object);

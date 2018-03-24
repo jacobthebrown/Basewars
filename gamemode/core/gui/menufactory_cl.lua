@@ -3,15 +3,24 @@ BW.gui.menufactory = {};
 BW.gui.menufactory.__index = BW.gui.menufactory;
 local MODULE = BW.gui.menufactory;
 
-
+--//
+--//	Creates the menu, and prescribes it to a series of abstract functions.
+--//
 function MODULE:Create(object, x, y, width, height, url)
    
+   -- Creates the gui element of the menu, setup.
     object.gui = vgui.Create( "DHTML" );
 	object.gui:SetPos(x, y);
 	object.gui:SetSize(width, height);
 	object.settings.init = {x = x, y = y, width = width, height = height, url = url};
 	
-	object.gui.OnDocumentReady = function(url) 
+	-- Add some default functions to the document.
+	object.gui.OnDocumentReady = function(url)
+		
+		if (object.OnDocumentReady) then
+			object:OnDocumentReady();
+		end
+		
 		object.gui:AddFunction("menu", "Close", function()
 			object:Close();
 		end);
@@ -40,27 +49,24 @@ function MODULE:Create(object, x, y, width, height, url)
 		end
 	end
 	
+	-- Open the target URL.
 	object.gui:OpenURL(url);
 
-
-	
-	
-	--object.gui.Paint = object.Paint;
-	
+	-- Prescribes the object to some meta functions of the menu factory.
 	setmetatable( object, MODULE );
     
 end
 
+--//
+--//
+--//
 function MODULE:Refresh()
-	--if (self && self.settings) then
-	--    --self.gui:OpenURL(self.settings.url);
-	--end
-	--
-	--if (args) then
-	--   self.settings.args = args;
-	--end
+	self:Trace();
 end
 
+--//
+--//
+--//
 function MODULE:Open(args) 
     
     self.gui:Show();
@@ -73,16 +79,13 @@ function MODULE:Open(args)
     
 end
 
+--//
+--//
+--//
 function MODULE:Close() 
     
     self.gui:Remove();
     self.gui:SetMouseInputEnabled(false);
     gui.EnableScreenClicker(false);
     
-end
-
-function MODULE:Paint(w, h)
-	if (!input.IsKeyDown( KEY_LALT )) then
-	 	--self:Close();
-	end
 end

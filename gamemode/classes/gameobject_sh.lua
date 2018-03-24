@@ -38,7 +38,7 @@ function GameObject:Register(objectType, metaobject)
 	metaobject.__index = metaobject;
 	
 	-- Table for function overrides for the object.
-	metaobject.override = {};
+	metaobject.override = metaobject.override or {};
 	
 	--
 	-- Sets the health of the object.
@@ -97,8 +97,23 @@ function GameObject:Register(objectType, metaobject)
 	--
 	-- Get the entity of the object.
 	--
-	metaobject.GetEntity = function(obj) 
-		return obj.entity or ents.GetByIndex(obj.entityid) or BW.utility:GetEntityByEdic(obj.edic); 
+	metaobject.GetEntity = function(obj)
+		
+		if (!obj.entity:IsValid()) then
+			print("invalid object entity");
+		else
+			return obj.entity;
+		end
+		
+		local entbyid = ents.GetByIndex(obj.entityid) or BW.utility:GetEntityByEdic(obj.edic); 
+		
+		if (entbyid && entbyid:IsValid()) then
+			obj.entity = entbyid;
+			return entbyid;
+		else
+			return nil;
+		end
+
 	end
 
 	--
@@ -165,26 +180,74 @@ function GameObject:Register(objectType, metaobject)
 	--
 	metaobject.GetOwner = function(obj) 
 		if (obj.owner) then 
-			return obj.ownerentity or player.GetBySteamID64(obj.owner);
+			
+			if (!obj.ownerentity:IsValid()) then
+				print("invalid object owner entity");
+			else
+				return obj.ownerentity;
+			end
+			
+			local plybysteam = player.GetBySteamID64(obj.owner);
+			
+			if (plybysteam && plybysteam:IsValid()) then
+				obj.ownerentity = plybysteam;
+				return plybysteam;
+			else
+				return nil;
+			end
 		end
 	end
 	
-	-- Grabs all the member variables for the meta object and creates getters/setts
-	local members = metaobject.members;
+	metaobject.Upgrade = function(obj, upgradeID)
 	
-	if (members) then
-		for k, v in pairs (members) do
+		local upgrade = metaobject.upgradetree[upgradeID];
+	
+		if (upgrade && !table.HasValue(obj.upgrades, upgradeID)) then
+		
+			print("yep")
+		
+			table.insert(obj.upgrades, upgradeID);
+		
+			print("Upgrading");
 			
-			local memberName = string.upper(string.sub( k, 1, 1))..string.sub(k, 2);
-			local getFunction = "Get"..memberName;
-			local setFunction = "Set"..memberName;
-			
-			metaobject[getFunction] = function(obj) return obj[k]; end
-			metaobject[setFunction] = function(obj, newValue) obj[k] = newValue; end
+			for k, v in pairs(upgrade.effects) do
+				if (k == "Immediate") then
+					v(obj);
+				end
+			end
 			
 		end
+		
+	end
+	-- Grabs all the member vars for the metaobject and creates getters/setters.
+	metaobject.members = metaobject.members or {};
+		
+	-- ADD SOME DEFAULT MEMBERS
+	metaobject.members.upgrades = metaobject.members.upgrades or {};
+	
+	for k, v in pairs (metaobject.members) do
+		
+		if (string.len(k) < 2) then
+			error("Memory variable name was too short for the getters/setters");	
+		end
+		
+		local memberName = string.upper(string.sub( k, 1, 1))..string.sub(k, 2);
+		local getFunction = "Get"..memberName;
+		local setFunction = "Set"..memberName;
+		
+		metaobject[getFunction] = function(obj) return obj[k]; end
+		metaobject[setFunction] = function(obj, newValue) obj[k] = newValue; end
+		
+		-- Setup the default values of the object as provided by the member var.
+		metaobject[k] = v;
+		
+	end
+		
+	if (objectType == "Object_Prop") then
+		PrintTable(metaobject.members)	
 	end
 	
+		
 	metaobject.RunUpgradeHook = function(gameobject, hooktype, args)
 	
 		local updatedArguments = args;

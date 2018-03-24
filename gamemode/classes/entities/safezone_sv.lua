@@ -4,6 +4,8 @@ Object.members = {
 		model = "models/props_combine/combinethumper002.mdl",
 	}
 
+Object.FLAGS = { UNBUYABLE = true };
+
 --//
 --//	Constructs a money printer object.
 --//

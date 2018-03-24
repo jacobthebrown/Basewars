@@ -18,17 +18,20 @@ hook.Add("PlayerSpawnProp", "PlayerSpawnProp_OnPhysgunPickup", MODULE.PlayerSpaw
 --//
 function MODULE.OnPhysgunPickup(ply, ent)
 
-	print(ply:GetObject())
+	local playerobject = ply:GetObject();
+	local entobject = ent:GetObject();
 
-	if (!ent:GetObject() || !ply || !ply:GetObject() || ent:IsPlayer()) then
+	if (!entobject || !ply || !playerobject || ent:IsPlayer()) then
 		return false;
 	end
 	
-	local entityOwner = ent:GetObject():GetOwner();
+	local entityOwner = entobject:GetOwner();
 	
 	if (ply == entityOwner) then
 		return true;
 	end
+	
+	print(entityOwner)
 	
 	if (entityOwner:GetObject().settings.FRIENDS[ply]) then
 		return true;

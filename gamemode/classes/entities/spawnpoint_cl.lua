@@ -1,5 +1,7 @@
 local Object = {};
 
+Object.FLAGS = { UNMOVEABLE = true, UNIQUE = true, ONGROUND = true, FROZEN = true,  COLLISION = COLLISION_GROUP_DEBRIS};
+
 --//
 --//	Constructs a vending machine object.
 --//

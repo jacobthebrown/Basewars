@@ -5,6 +5,7 @@ Object.members = {
     wealth = 0
 };
 
+Object.FLAGS = { UNBUYABLE = true };
 
 --//
 --//    Constructs a new object to store player data.

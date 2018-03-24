@@ -16,9 +16,7 @@ function GM:ScoreboardHide()
 end
 
 function GM:ScoreboardShow()
-
-	
-	MODULE:Create();
+	MODULE:Trace();
 	MODULE.gui:SetMouseInputEnabled(true);
 	gui.EnableScreenClicker(true);
 	
@@ -27,9 +25,7 @@ end
 function MODULE:Create(args)
 	
 	if (self.gui) then
-		self:Open();
-		return;
-		--self.gui:Remove();	
+		self.gui:Remove();	
 	end
 	
 	self.settings = {};
@@ -41,14 +37,29 @@ end
 
 function MODULE:Loaded()
 	
-	for k,v in pairs (GameObject.registry) do
-
+	for k,v in pairs (self.settings.args.registry) do
+		
+		PrintTable(v)
+		
+		if (v.FLAGS && v.FLAGS.UNBUYABLE) then
+			continue;
+		end
+		
 	    local query = string.format("CreateItem('menudock-general', '%s', '%s', '%s', '%d', %s)", v:GetType(), v:GetType(), "Some really cool entity!", 100, true);
-	    
-	    print(query);
-	    
 		self.gui:QueueJavascript(query);
+		
 	end
+	
+	local lastPaint = 0;
+	function self.gui:Paint( w, h )
+		if (CurTime() >= lastPaint + 0.5) then
+			lastPaint = CurTime();
+			for k, v in pairs ( player.GetAll() ) do 
+				self:QueueJavascript( string.format("UpdatePlayer('%s', '%s', '%s', '%d')", v:EntIndex(), v:GetName(), "Title", v:Ping()) )
+			end
+		end
+	end
+	
 end
 
 function MODULE:Buy(args)
@@ -56,7 +67,8 @@ function MODULE:Buy(args)
 	LocalPlayer():ConCommand( "create "..args["objectid"] )
 end
 
-function MODULE:GUICheck() 
+function MODULE:Trace()
+		MODULE:Create({registry = GameObject.registry});
 end
 
 function MODULE:PlayerBindPress(bind)

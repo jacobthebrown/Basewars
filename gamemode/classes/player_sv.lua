@@ -25,7 +25,7 @@ Object.members.settings = {
     ADMIN = false
 };
 
-Object.FLAGS = { IMMORTAL = true };
+Object.FLAGS = { UNBUYABLE = true };
 
 --//
 --//    Constructs a new object to store player data.

@@ -4,14 +4,13 @@ Object.members = {
 	maxHealth = 1000,
 	balance = 0, 
 	maxBalance = 1000, 
-	printAmount = 10,
-	upgrades = {}
+	printAmount = 10
 };
 
 Object.upgradetree = {
 	[1] = { 
 		effects = { 
-			["Immediate"] = BW.upgrade:HealthIncreaser(500),
+			["Immediate"] = BW.upgrade:HealthIncreaserConstant(500),
 			["OnTakeDamage"] = BW.upgrade:DamageReducer(DMG_BULLET, 0.50)
 		},
 		children = {2},
@@ -59,30 +58,6 @@ function Object:Use(ply, ent)
 	if (self:GetBalance() > 0) then
 		self:Withdraw(ply, self:GetBalance());
 	end
-end
-
---//
---//
---//
-function Object:Upgrade(upgradeID)
-
-	local upgrade = Object.upgradetree[upgradeID];
-
-	if (upgrade && !table.HasValue(self.upgrades, upgradeID)) then
-	
-		table.insert(self.upgrades, upgradeID);
-	
-		print("Upgrading");
-		
-		for k, v in pairs(upgrade.effects) do
-			if (k == "Immediate") then
-				v(self);
-			end
-		end
-		
-	end
-	
-	
 end
 
 ------------[[

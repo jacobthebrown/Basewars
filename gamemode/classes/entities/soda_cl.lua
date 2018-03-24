@@ -1,5 +1,7 @@
 local Object = {};
    
+Object.FLAGS = { UNBUYABLE = true, FROZEN = false, COLLISION = COLLISION_GROUP_DEBRIS};
+   
 --//
 --//	Constructs a soda object.
 --//

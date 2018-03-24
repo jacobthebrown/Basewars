@@ -1,5 +1,17 @@
 local Object = {};
 
+Object.FLAGS = { UNBUYABLE = true };
+
+Object.upgradetree = {
+	[1] = { 
+		effects = { 
+			["Immediate"] = BW.upgrade:HealthIncreaserMultiple(2)
+		},
+		children = {2},
+		parent = {}
+	}
+}
+
 --//
 --//	Constructs a spawn point object.
 --//

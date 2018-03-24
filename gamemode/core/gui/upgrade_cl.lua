@@ -5,14 +5,6 @@ local MenuFactory = BW.gui.menufactory;
 
 function MODULE:Create(args)
 	
-	--local metatree = metaobject.upgradetree;
-	--local currtree = gameobject.upgrades;
-	
-	--if (self.gui == nil) then
-		--local x, y = (ScrW()/2) - (ScrW()/4), (ScrH()/2 - 256);
-		--local width, height = (ScrW()/2), 512;
-	--end
-	
 	if (self.gui) then
 		self.gui:Remove();	
 	end
@@ -29,15 +21,14 @@ function MODULE:Loaded()
 	local metatree = self.settings.args.metaobject.upgradetree;
 	local currtree = self.settings.args.gameobject.upgrades;
 	
-	for k,v in pairs (metatree or {}) do
+	PrintTable(self.settings.args.gameobject)
+	
+	for k,v in pairs (metatree) do
 	    local identity = k;
 	    local name = v.name;
 	    local desc = v.desc;
 	    local enabled = true;
-	    
-	    print(currtree[k]);
-	    PrintTable(currtree);
-	    
+
 	    if (currtree[k]) then
 	        enabled = false;
 	    end
@@ -61,7 +52,7 @@ function MODULE:Buy(args)
 	
 end
 
-function MODULE:GUICheck() 
+function MODULE:Trace() 
     local trace = LocalPlayer():GetEyeTrace().Entity;
     
     if (trace:GetObject()) then
@@ -71,13 +62,12 @@ function MODULE:GUICheck()
         
         MODULE:Create({metaobject = metaobject, gameobject = gameobject}); 
     end
-    
 end
 
 function MODULE:PlayerBindPress(bind)
 
-    if (bind == "lastinv") then
-        MODULE:GUICheck();
+    if (bind == "lastinv" || (bind == "")) then
+        MODULE:Trace();
         return true;
     end
    

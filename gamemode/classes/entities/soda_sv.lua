@@ -5,7 +5,7 @@ Object.members = {
 	used = false
 };
 
-Object.FLAGS = { FROZEN = false, COLLISION_GROUP_DEBRIS};
+Object.FLAGS = { UNBUYABLE = true, FROZEN = false, COLLISION = COLLISION_GROUP_DEBRIS};
    
 --//
 --//	Constructs a soda object.
