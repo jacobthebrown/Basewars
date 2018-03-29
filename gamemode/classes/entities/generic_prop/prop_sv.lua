@@ -1,16 +1,4 @@
-local Object = {};
-
-Object.FLAGS = { UNBUYABLE = true };
-
-Object.upgradetree = {
-	[1] = { 
-		effects = { 
-			["Immediate"] = BW.upgrade:HealthIncreaserMultiple(2)
-		},
-		children = {2},
-		parent = {}
-	}
-}
+local Object = GameObject:Register( "Object_Prop");
 
 --//
 --//	Constructs a spawn point object.
@@ -29,6 +17,5 @@ function Object:new( ply, ent )
 		maxHealth = health
 	}
 	
-	return GameObject:newProp(Object, metamembers, ent, ply);
+	return GameObject:newProp(self, metamembers, ent, ply);
 end
-GameObject:Register( "Object_Prop", Object);

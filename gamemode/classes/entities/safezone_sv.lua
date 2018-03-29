@@ -10,7 +10,7 @@ Object.FLAGS = { UNBUYABLE = true };
 --//	Constructs a money printer object.
 --//
 function Object:new( ply, position, maxBalance, printAmount )
-	return GameObject:new(Object, clone(Object.members), ply, position);
+	return GameObject:new(Object, table.Copy(Object.members), ply, position);
 end
 
 

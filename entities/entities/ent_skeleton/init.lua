@@ -5,6 +5,8 @@ ENT.TimeInitalized = 0;
 
 function ENT:Initialize()
 
+	PrintTable(debug.getmetatable(self:GetObject()))
+
 	self:SetModel(Model(self:GetObject():GetModel()) or Model("models/props_lab/servers.mdl"));
 	
 	-- Allows for one 'Use' per button press.

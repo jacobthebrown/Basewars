@@ -1,7 +1,9 @@
 BW.upgrade = {};
 local MODULE = BW.upgrade;
 
-
+--//
+--//
+--//
 function MODULE:DamageReducer(dmgtype, reduction)
     
     return function(obj, args) 
@@ -16,14 +18,23 @@ function MODULE:DamageReducer(dmgtype, reduction)
 
 end
 
+--//
+--//
+--//
 function MODULE:HealthIncreaserConstant(increase)
     return function(obj) obj:SetMaxHealth(obj:GetMaxHealth() + increase); obj:SetHealth(obj:GetMaxHealth()); end
 end
 
+--//
+--//
+--//
 function MODULE:HealthIncreaserMultiple(increase)
     return function(obj) obj:SetMaxHealth(obj:GetMaxHealth() * increase); obj:SetHealth(obj:GetMaxHealth()); end
 end
 
+--//
+--//
+--//
 function MODULE:HealthDecreaser(decrease)
    return function(obj) obj:SetMaxHealth(obj:GetMaxHealth() - decrease); obj:SetHealth(obj:GetMaxHealth()); end
 end

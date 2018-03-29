@@ -30,8 +30,8 @@ function MODULE:Create(object, x, y, width, height, url)
 		end);
 		
 		object.gui:AddFunction("menu", "Loaded", function() 
-		    if (object.Loaded) then
-		        object:Loaded();
+		    if (object.OnLoaded) then
+		        object:OnLoaded();
 		    end
 		end);
 		
@@ -42,10 +42,11 @@ function MODULE:Create(object, x, y, width, height, url)
 		    if (object.Buy) then
 		        object:Buy(args);
 		    end
-		end);
+		    
+	end);
 		
-		if (object.Loaded) then
-		     object:Loaded();
+		if (object.OnLoaded) then
+		     object:OnLoaded();
 		end
 	end
 	
@@ -58,16 +59,20 @@ function MODULE:Create(object, x, y, width, height, url)
 end
 
 --//
---//
+--//	Reloads the gui elements.
 --//
 function MODULE:Refresh()
 	self:Trace();
 end
 
 --//
---//
+--//	Opens the GUI object.
 --//
 function MODULE:Open(args) 
+    
+    if (!self.gui || !self.gui:IsValid()) then
+    	error("GUI tried to be opened but did not exist.");
+	end
     
     self.gui:Show();
 	self.gui:SetMouseInputEnabled(true);
@@ -80,9 +85,13 @@ function MODULE:Open(args)
 end
 
 --//
---//
+--//	Closes the GUI object.
 --//
 function MODULE:Close() 
+    
+    if (!self.gui || !self.gui:IsValid()) then
+    	return; 
+	end
     
     self.gui:Remove();
     self.gui:SetMouseInputEnabled(false);

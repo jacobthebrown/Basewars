@@ -1,11 +1,5 @@
-local Object = {};
-Object.members = {
-    player = nil,
-    settings,
-    wealth = 0
-};
+local Object = GameObject:Register( "Object_Player", Object);
 
-Object.FLAGS = { UNBUYABLE = true };
 
 --//
 --//    Constructs a new object to store player data.
@@ -13,8 +7,6 @@ Object.FLAGS = { UNBUYABLE = true };
 function Object:new( metaInstance )
 	return GameObject:new(Object, metaInstance);
 end
-
-GameObject:Register( "Object_Player", Object);
 
 hook.Add( "HUDPaint", "HUDPaint_HUD", function()
     

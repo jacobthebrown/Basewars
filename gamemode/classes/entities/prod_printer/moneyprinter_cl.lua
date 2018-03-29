@@ -1,29 +1,8 @@
-local Object = {};
-Object.members = {
-	model = "models/props_lab/servers.mdl",
-	maxHealth = 1000,
-	balance = 0, 
-	maxBalance = 1000, 
-	printAmount = 10,
-};
-
-Object.upgradetree = {
-	[1] = { 
-		name = "Armor Plating", 
-		desc = "Adds health and damage resistence to gunshots.", 
-		children = {2},
-		parent = {}
-	},
-	[2] = {
-		name = "Hotstreak",
-		desc = "Prints 2x Faster for 5 minutes",
-		parent = {1}
-	}
-}
+local Object = GameObject:Register( "Object_MoneyPrinter", Object);
 
 --//
 --//	Constructs a money printer object.
---//`
+--//
 function Object:new( metaInstance )
 	return GameObject:new(Object, metaInstance);
 end
@@ -32,7 +11,6 @@ end
 --//	Function for rendering the object to the client.
 --//
 function Object:Draw()
-
 
 	local ent = self:GetEntity();
 
@@ -48,6 +26,3 @@ function Object:Draw()
 	cam.End3D2D();
 
 end
-
-
-GameObject:Register( "Object_MoneyPrinter", Object);

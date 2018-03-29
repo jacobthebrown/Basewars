@@ -1,32 +1,10 @@
-local Object = {};
-Object.members = {
-	model = "models/props_lab/servers.mdl",
-	maxHealth = 1000,
-	balance = 0, 
-	maxBalance = 1000, 
-	printAmount = 10
-};
-
-Object.upgradetree = {
-	[1] = { 
-		effects = { 
-			["Immediate"] = BW.upgrade:HealthIncreaserConstant(500),
-			["OnTakeDamage"] = BW.upgrade:DamageReducer(DMG_BULLET, 0.50)
-		},
-		children = {2},
-		parent = {}
-	},
-	[2] = {
-		effects = {},
-		parent = {1}
-	}
-}
+local Object = GameObject:Register( "Object_MoneyPrinter", Object);
 
 --//
 --//	Constructs a money printer object.
 --//
 function Object:new( ply, position)
-	return GameObject:new(Object, clone(Object.members), ply, position, ply:LocalToWorldAngles(Angle(0,180,0)));
+	return GameObject:new(Object, table.Copy(Object.members), ply, position, ply:LocalToWorldAngles(Angle(0,180,0)));
 end
 
 --//
@@ -82,6 +60,3 @@ function InitalizeGlobalTimers()
 end
 hook.Add("OnReloaded", "OnReloaded_InitalizeGlobalTimers", InitalizeGlobalTimers)
 hook.Add("PostGamemodeLoaded", "Hook_InitalizeGlobalTimers", InitalizeGlobalTimers)
-
-GameObject:Register( "Object_MoneyPrinter", Object)
-

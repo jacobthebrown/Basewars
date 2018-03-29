@@ -6,17 +6,16 @@ local MODULE = BW.network;
 --//
 function MODULE:InitializeNetworkStrings()
 	
-	-- 
 	util.AddNetworkString("GameObject_SendGameObjectData_AboutOne");
 	util.AddNetworkString("GameObject_SendGameObjectData_AboutMany");
 	util.AddNetworkString("GameObject_SendTriggerEvent")
 	util.AddNetworkString("GameObject_PlayerFullyLoaded")
 	util.AddNetworkString("GameObject_Upgrade")
+	util.AddNetworkString("Debug_Message_ServerToClient");
 	
 	-- When a client tells us he's fully loaded the first rendered frame of the
 	-- game we call the player fully loaded hook
 	net.Receive("GameObject_PlayerFullyLoaded", function(len,ply)
-		-- TODO: Do a check to make sure the player is not spam calling this.
 		hook.Call("PlayerFullyLoaded", nil, ply)
 	end)
 

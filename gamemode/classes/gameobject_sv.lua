@@ -1,7 +1,7 @@
 --//
 --//
 --//
-function GameObject:new(metaObject, object, ply, pos, angle)
+function GameObject:new(metaobject, object, ply, pos, angle)
 	
 	-- Check if player that created the gameobject, exists.
 	if (!ply || !ply:IsPlayer()) then
@@ -9,20 +9,20 @@ function GameObject:new(metaObject, object, ply, pos, angle)
 	end
 	
 	-- Create a clone of the metatable of the game object.
-	setmetatable( object, metaObject );
+	setmetatable( object, metaobject );
 	
 	-- Issue object an edic. 
 	object:SetEdic(GameObject:IssueEdic());
 	
 	-- The gameobject's physical form is an entity.
-	local ent = BW.utility:CreateEntity("ent_skeleton", pos, angle);
+	local ent = BW.util:CreateEntity("ent_skeleton", pos, angle);
 	ent:SetObject(object);
 	ent:Spawn();
 	
 	-- Assign ownership, give health, set object type, and set entity.
 	object:SetOwner(ply);
 	object:SetHealth(object:GetMaxHealth());
-	object:SetType(metaObject.objectType);
+	object:SetType(metaobject.objectType);
 	object:SetEntity(ent);
 	object:SetUpgrades({});
 
@@ -32,21 +32,21 @@ function GameObject:new(metaObject, object, ply, pos, angle)
 	---Game Object Flags Handled Here-------------------------------------------
 	
 	-- If game object should be spawned frozen.
-	if (metaObject.FLAGS && metaObject.FLAGS.FROZEN) then
+	if (metaobject.FLAGS && metaobject.FLAGS.FROZEN) then
 		if object and ent:IsValid() then
 			ent:GetPhysicsObject():EnableMotion(false);
 		end
-	elseif (metaObject.FLAGS == nil || metaObject.FLAGS.FROZEN == nil) then
+	elseif (metaobject.FLAGS == nil || metaobject.FLAGS.FROZEN == nil) then
 		ent:GetPhysicsObject():EnableMotion(false);
 	end
 	
 	-- If game object has custom collisions.
-	if (metaObject.FLAGS && metaObject.FLAGS.COLLISION) then
-		ent:SetCollisionGroup(metaObject.FLAGS.COLLISION);
+	if (metaobject.FLAGS && metaobject.FLAGS.COLLISION) then
+		ent:SetCollisionGroup(metaobject.FLAGS.COLLISION);
 	end
 	
 	-- If game object must be spawned on the ground.
-	if (metaObject.FLAGS && metaObject.FLAGS.ONGROUND) then
+	if (metaobject.FLAGS && metaobject.FLAGS.ONGROUND) then
 		
 		local tr = util.TraceLine( {
 			start = ent:GetPos(),
@@ -61,8 +61,8 @@ function GameObject:new(metaObject, object, ply, pos, angle)
 	end
 	
 	-- If game object should not be moved.
-	if (metaObject.FLAGS && metaObject.FLAGS.UNMOVEABLE) then
-		--metaObject.FLAGS.UNMOVEABLE = true;
+	if (metaobject.FLAGS && metaobject.FLAGS.UNMOVEABLE) then
+		--metaobject.FLAGS.UNMOVEABLE = true;
 	end
 
 	---Game Object Hooks are handled here---------------------------------------
@@ -72,12 +72,15 @@ function GameObject:new(metaObject, object, ply, pos, angle)
 
 	-- If game object has any hook functions, we add it to the hook function register.
 	for kHook, vHook in pairs (GameObject.hooks) do
-		for kFunc, vFunc in pairs (metaObject) do
+		for kFunc, vFunc in pairs (metaobject) do
 			if (isfunction(vFunc) && kHook == kFunc) then
-				GameObject:RegisterHook(metaObject, vFunc, object);				
+				GameObject:RegisterHook(metaobject, vFunc, object);				
 			end
 		end
 	end
+	
+	-- TODO: COMMENT
+	GameObject:SetupClassVariables(metaobject, object);
 
 	return object;
 end
@@ -85,7 +88,7 @@ end
 --//
 --//	Constructs a metatable for an incoming GameObject.
 --//
-function GameObject:newProp(metaObject, object, ent, ply)
+function GameObject:newProp(metaobject, object, ent, ply)
 
 	-- Check if player that created the GameObject, exists.
 	if (!ply || !ply:IsPlayer()) then
@@ -93,15 +96,15 @@ function GameObject:newProp(metaObject, object, ent, ply)
 	end
 	
 	-- Create a clone of the metatable of the game object.
-	setmetatable( object, metaObject );
-	
+	setmetatable( object, metaobject );
+
 	-- Assign ownership and gain health.
 	object:SetOwner(ply);
 	object:SetHealth(object:GetMaxHealth());
 	
 	-- Add Game Object to global list of entities.
 	object:SetEdic(GameObject:IssueEdic());
-	object:SetType(metaObject.objectType);
+	object:SetType(metaobject.objectType);
 	object:SetEntity(ent);
 	
 	-- Hook onto the entities remove funciton, to delete the object.
@@ -118,13 +121,16 @@ function GameObject:newProp(metaObject, object, ent, ply)
 	-- Add object to global object's list.
 	GameObject:AddGameObject(object);
 
+	-- TODO: COMMENT
+	GameObject:SetupClassVariables(metaobject, object);
+
 	return object;
 end
 
 --//
 --//	Constructs a metatable for an incoming GameObject which is a player.
 --//
-function GameObject:newPlayer(metaObject, object, ply)
+function GameObject:newPlayer(metaobject, object, ply)
 	
 	-- Check if player that created the GameObject, exists.
 	if (!object || !ply:IsPlayer()) then
@@ -132,17 +138,35 @@ function GameObject:newPlayer(metaObject, object, ply)
 	end
 	
 	-- Create a clone of the metatable of the game object.
-	setmetatable( object, metaObject );
+	setmetatable( object, metaobject );
 	
 	object:SetEdic(GameObject:IssueEdic());
 	object:SetOwner(ply);
 	object:SetEntity(ply);
-	object:SetType(metaObject.objectType);
+	object:SetType(metaobject.objectType);
 	
 	-- Add object to global object's list.
 	GameObject:AddGameObject(object);
 	
+	-- TODO: COMMENT
+	GameObject:SetupClassVariables(metaobject, object);
+	
 	return object;
+end
+
+function GameObject:SetupClassVariables(metaobject, object)
+	
+	for k, v in pairs (metaobject.members) do
+
+		-- Setup the default values of the object as provided by the member var.
+		
+		if (istable(v)) then
+			object[k] = table.Copy(v);
+		else
+			object[k] = v;
+		end
+	end	
+	
 end
 
 --//////////////////////////////////////////////////////////////////////////////
@@ -171,7 +195,7 @@ end
 function GameObject:SendGameObjectDataMany(ply, objects)
 	
 	BW.debug:PrintStatement( {"[Server] Sending GameObject data about many game objects to ", ply:GetName(), ": ", objects}, "Networking", BW.debug.enums.network.low)
-
+	
 	net.Start("GameObject_SendGameObjectData_AboutMany");
 	net.WriteTable(objects);
 	net.Send(ply);
@@ -283,5 +307,11 @@ end)
 hook.Add( "EntityTakeDamage", "GameObject_OnEntityTakeDamage", function( target, dmginfo )
 	if (target:GetObject() && target:GetObject().OnTakeDamage) then
 		target:GetObject():OnTakeDamage(dmginfo);
+	end
+end)
+
+hook.Add( "Think", "GameObject_OnThink", function()
+	for k, v in pairs(GameObject.hooks.OnThink) do
+		v:OnThink();
 	end
 end)

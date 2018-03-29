@@ -14,6 +14,43 @@ end
 hook.Add("PlayerSpawnProp", "PlayerSpawnProp_OnPhysgunPickup", MODULE.PlayerSpawnProp )
 
 --//
+--//	Disables physics for all source engine entities on physgun drop.
+--//
+function MODULE.OnPhysgunDrop( ply, ent )
+	
+	local phys = ent:GetPhysicsObject();
+ 
+	if phys and phys:IsValid() then
+		phys:EnableMotion(false);
+	end
+	
+end
+hook.Add("PhysgunDrop", "PhysgunDrop_OnPhysgunDrop", MODULE.OnPhysgunDrop )
+
+--//
+--//	Disables physics for all source engine entities spawn.
+--//
+function MODULE.OnPlayerSpawnObject(ply, model, ent)
+	
+	if (!ent) then
+		return;
+	end
+	
+	if (ent:GetClass() == "prop_physics") then
+		local metaobject =  GameObject:GetMetaObject("Object_Prop");
+		ent:SetObject(metaobject:new(ply, ent));
+	end
+	
+	local phys = ent:GetPhysicsObject();
+ 
+	if phys and phys:IsValid() then
+		phys:EnableMotion(false);
+	end
+	
+end
+hook.Add("PlayerSpawnedProp", "Hook_OnPlayerSpawnObject", MODULE.OnPlayerSpawnObject )
+
+--//
 --//	TODO
 --//
 function MODULE.OnPhysgunPickup(ply, ent)
@@ -33,7 +70,7 @@ function MODULE.OnPhysgunPickup(ply, ent)
 	
 	print(entityOwner)
 	
-	if (entityOwner:GetObject().settings.FRIENDS[ply]) then
+	if (entityOwner:GetObject().settings.FRIENDS[ply:SteamID64()]) then
 		return true;
 	end
 	
@@ -61,7 +98,7 @@ function MODULE.OnToolgunFire( ply, trace, tool )
 		return true;	
 	end
 	
-	if (entityOwner:GetObject().settings.FRIENDS[ply]) then
+	if (entityOwner:GetObject().settings.FRIENDS[ply:SteamID64()]) then
 		return true;
 	end
 	
@@ -69,3 +106,4 @@ function MODULE.OnToolgunFire( ply, trace, tool )
 		
 end
 hook.Add("CanTool", "CanTool_OnToolgunFire", MODULE.OnToolgunFire )
+

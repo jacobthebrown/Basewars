@@ -1,5 +1,3 @@
-local sandbox = false;
-
 --//
 --// CREDIT: andrewmcwatters
 --// https://gmod.facepunch.com/f/gmodaddon/jcly/Ragdoll-Fade-System-Fade-out-and-remove-client-side-ragdolls/1/

@@ -9,7 +9,7 @@ function GameObject:new( metaObject, rawobject )
 	if (rawobject.entity && rawobject.entity:IsValid()) then
 		ent = rawobject.entity;
 	else
-		ent = ents.GetByIndex(rawobject.entityid) or BW.utility:GetEntityByEdic(rawobject.edic, rawobject.entity) or rawobject.entity;
+		ent = ents.GetByIndex(rawobject.entityid) or BW.util:GetEntityByEdic(rawobject.edic, rawobject.entity) or rawobject.entity;
 	end
 	
 	-- If we couldn't find the entity, then we messed up somehow.
@@ -25,10 +25,11 @@ function GameObject:new( metaObject, rawobject )
 	end
 
 	-- Create a clone of the metatable of the GameObject.
-	setmetatable( rawobject, metaObject ) 
+	setmetatable(rawobject, metaObject);
 	rawobject.InitializedTime = CurTime();
 	GameObject:AddGameObject(rawobject);
 	ent:SetObject(rawobject);
+	
 	ent:CallOnRemove( "RemoveGameObject", function(entity) 
 		
 		local object = entity:GetObject();
@@ -94,7 +95,7 @@ function GameObject.InitializeOrMerge(rawobject, eventname, args)
 
 	-- 
 	local rawedic = rawobject.edic;
-	local ent = ents.GetByIndex(rawobject.entityid) or BW.utility:GetEntityByEdic(rawobject.edic, rawobject.entity) or rawobject.entity;
+	local ent = ents.GetByIndex(rawobject.entityid) or BW.util:GetEntityByEdic(rawobject.edic, rawobject.entity) or rawobject.entity;
 	
 	-- If the entity doesn't exist for the client yet, we need to put it in the queue to load it.
 	if (!ent || !ent:IsValid()) then
@@ -119,8 +120,9 @@ function GameObject.InitializeOrMerge(rawobject, eventname, args)
 	
 		if (!fetchedObject && GameObject.registry[rawobject.objectType]) then
 	
-			local metaObject = GameObject.registry[rawobject.objectType];
-	    	return metaObject:new(rawobject);
+			local metaobject = GameObject.registry[rawobject.objectType];
+			
+	    	return metaobject:new(rawobject);
 	    	
 	    else
 			if (rawobject.edic != fetchedObject.edic) then
@@ -128,7 +130,7 @@ function GameObject.InitializeOrMerge(rawobject, eventname, args)
 				-- Flush cache on server.
 			else
 	    		table.Merge(fetchedObject, rawobject);
-	    		--print("2b")
+
 	    		return fetchedObject;
 			end
 	    end
@@ -204,7 +206,7 @@ hook.Add( "PostDrawOpaqueRenderables", "GameObject_RenderAll", function()
 		
 		local ent = object:GetEntity();
 		
-		if (!ent:IsValid()) then
+		if (!ent || !ent:IsValid()) then
 			error("GameObject has a null entity.")
 		end
 		

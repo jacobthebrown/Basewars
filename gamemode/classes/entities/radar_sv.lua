@@ -13,7 +13,7 @@ Object.FLAGS = { UNIQUE = true };
 --//	Constructs a radar object for the server.
 --//
 function Object:new( ply, position )
-	return GameObject:new(Object, clone(Object.members), ply, position, Angle(0,0,0));
+	return GameObject:new(Object, table.Copy(Object.members), ply, position, Angle(0,0,0));
 end
 
 --//

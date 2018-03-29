@@ -1,31 +1,4 @@
-local Object = {};
-
-Object.members = {
-    wealth = 0, 
-    settings = nil
-};
-
-Object.override = {};
-
-Object.members.settings = {
-    CHAR = {}, 
-    FRIENDS = {}, 
-    TEAM = nil, 
-    PPSETTINGS = {
-        FRIENDSALLOWED = { 
-            PROPS = false, 
-            TOOL = false
-            
-        }, 
-        TEAMALLOWED = {
-            PROPS = false, 
-            TOOL = false
-        } 
-    },
-    ADMIN = false
-};
-
-Object.FLAGS = { UNBUYABLE = true };
+local Object = GameObject:Register( "Object_Player");
 
 --//
 --//    Constructs a new object to store player data.
@@ -37,7 +10,7 @@ function Object:new( ply )
         settings = table.Copy(Object.settings)
 	}
 
-	return GameObject:newPlayer(Object, clone(Object.members), ply);
+	return GameObject:newPlayer(Object, table.Copy(Object.members), ply);
 end
 
 --//
@@ -86,21 +59,19 @@ end
 function Object:AddFriend(targetPlayer)
     
     if (targetPlayer && targetPlayer:IsPlayer()) then
-       self.settings.FRIENDS[targetPlayer] = true;
+       self.settings.FRIENDS[targetPlayer:SteamID64()] = true;
     end
     
 end
 
 function Object:RemoveFriend(targetPlayer)
     if (targetPlayer && targetPlayer:IsPlayer()) then
-       self.settings.FRIENDS[targetPlayer] = nil;
+       self.settings.FRIENDS[targetPlayer:SteamID64()] = false;
     end
 end
 
 Object.override["OnTakeDamage"] = true;
 function Object:OnTakeDamage(dmginfo)
-
-    print("yep")
 
     local ply = self:GetEntity();
     local newHealth = ply:Health() - dmginfo:GetBaseDamage();
@@ -116,22 +87,6 @@ end
 function Object:OnPhysgunPickup()
     return false
 end
-
-GameObject:Register( "Object_Player", Object);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 concommand.Add( "addFriend", function( ply, cmd, args ) 
 

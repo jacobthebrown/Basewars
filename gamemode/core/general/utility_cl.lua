@@ -1,1 +1,0 @@
-local utility = BW.utility;

@@ -10,7 +10,7 @@ Object.members = {
 --//	Constructs a Soda Vending Machine object.
 --//
 function Object:new( ply, pos )
-	return GameObject:new(Object, clone(Object.members), ply, pos);
+	return GameObject:new(Object, table.Copy(Object.members), ply, pos);
 end
 
 function Object:Use(ply)

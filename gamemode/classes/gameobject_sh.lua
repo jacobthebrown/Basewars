@@ -18,7 +18,7 @@ end;
 GameObject.GetEdicCount = function() return GameObject.EdicCount end;
 
 --GameObject.Cache = {};	// CACHE
-GameObject.hooks = GameObject.hooks or { OnOwnerSpawn = {}, OnPhysgunPickup = {}, OnPlayerDeathThink = {}, OnPlayerDeath = {}, OnTakeDamage = {} };
+GameObject.hooks = GameObject.hooks or { OnThink = {}, OnOwnerSpawn = {}, OnPhysgunPickup = {}, OnPlayerDeathThink = {}, OnPlayerDeath = {}, OnTakeDamage = {} };
 GameObject.unloadedents = GameObject.unloadedents or {};
 
 --//
@@ -32,7 +32,16 @@ GameObject.unloadedents = GameObject.unloadedents or {};
 --//
 --//	Registers the meta table of the object in the registry and adds base functions.
 --//
-function GameObject:Register(objectType, metaobject)
+function GameObject:Register(objectType)
+	
+	if (GameObject.registry[objectType]) then
+		BW.debug:PrintStatement( {"\n\nMerge: \n", GameObject.registry[objectType]}, "GameObject", BW.debug.enums.gameobject.high, true)
+		--return GameObject.registry[objectType];
+	end
+	
+	GameObject.registry[objectType] = GameObject.registry[objectType] or {};
+	
+	local metaobject = GameObject.registry[objectType];
 	
 	-- Allow meta object to index itself.
 	metaobject.__index = metaobject;
@@ -105,7 +114,7 @@ function GameObject:Register(objectType, metaobject)
 			return obj.entity;
 		end
 		
-		local entbyid = ents.GetByIndex(obj.entityid) or BW.utility:GetEntityByEdic(obj.edic); 
+		local entbyid = ents.GetByIndex(obj.entityid) or BW.util:GetEntityByEdic(obj.edic); 
 		
 		if (entbyid && entbyid:IsValid()) then
 			obj.entity = entbyid;
@@ -202,10 +211,8 @@ function GameObject:Register(objectType, metaobject)
 	
 		local upgrade = metaobject.upgradetree[upgradeID];
 	
-		if (upgrade && !table.HasValue(obj.upgrades, upgradeID)) then
-		
-			print("yep")
-		
+		if (upgrade && obj.upgrades && !table.HasValue(obj.upgrades, upgradeID)) then
+			
 			table.insert(obj.upgrades, upgradeID);
 		
 			print("Upgrading");
@@ -219,6 +226,7 @@ function GameObject:Register(objectType, metaobject)
 		end
 		
 	end
+	
 	-- Grabs all the member vars for the metaobject and creates getters/setters.
 	metaobject.members = metaobject.members or {};
 		
@@ -235,18 +243,10 @@ function GameObject:Register(objectType, metaobject)
 		local getFunction = "Get"..memberName;
 		local setFunction = "Set"..memberName;
 		
-		metaobject[getFunction] = function(obj) return obj[k]; end
-		metaobject[setFunction] = function(obj, newValue) obj[k] = newValue; end
-		
-		-- Setup the default values of the object as provided by the member var.
-		metaobject[k] = v;
+		metaobject[getFunction] = function(obj) return obj[k]; end;
+		metaobject[setFunction] = function(obj, newValue) obj[k] = newValue; end;
 		
 	end
-		
-	if (objectType == "Object_Prop") then
-		PrintTable(metaobject.members)	
-	end
-	
 		
 	metaobject.RunUpgradeHook = function(gameobject, hooktype, args)
 	
@@ -287,7 +287,7 @@ function GameObject:Register(objectType, metaobject)
 		end
 	end
 	
-	GameObject.registry[objectType] = metaobject;
+	return GameObject.registry[objectType];
 	
 end
 

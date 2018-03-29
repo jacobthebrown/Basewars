@@ -5,7 +5,7 @@ local MenuFactory = BW.gui.menufactory;
 
 function GM:ScoreboardHide()
 
-	if (!MODULE.gui) then
+	if (!MODULE.gui || !MODULE.gui:IsValid()) then
 		return;
 	end
 
@@ -24,22 +24,20 @@ end
 
 function MODULE:Create(args)
 	
-	if (self.gui) then
+	if (self.gui && self.gui:IsValid()) then
 		self.gui:Remove();	
 	end
 	
 	self.settings = {};
 	self.settings.args = args;
-	MenuFactory:Create(MODULE, 0, 0, ScrW(), ScrH(), "http://54.88.44.238:8080/shop");
+	MenuFactory:Create(MODULE, 0, 0, ScrW(), ScrH(), "http://34.238.255.178:8080/shop");
 	self:Open();
 
 end
 
-function MODULE:Loaded()
+function MODULE:OnLoaded()
 	
 	for k,v in pairs (self.settings.args.registry) do
-		
-		PrintTable(v)
 		
 		if (v.FLAGS && v.FLAGS.UNBUYABLE) then
 			continue;
@@ -63,7 +61,6 @@ function MODULE:Loaded()
 end
 
 function MODULE:Buy(args)
-	PrintTable(args)
 	LocalPlayer():ConCommand( "create "..args["objectid"] )
 end
 

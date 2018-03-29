@@ -11,7 +11,7 @@ Object.FLAGS = { UNBUYABLE = true, FROZEN = false, COLLISION = COLLISION_GROUP_D
 --//	Constructs a soda object.
 --//
 function Object:new( ply, pos, angle )
-	return GameObject:new(Object, clone(Object.members), ply, pos, angle);
+	return GameObject:new(Object, table.Copy(Object.members), ply, pos, angle);
 end
 
 --//

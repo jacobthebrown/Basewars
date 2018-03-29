@@ -12,7 +12,7 @@ Object.FLAGS = { UNMOVEABLE = true, UNIQUE = true, ONGROUND = true, FROZEN = tru
 --//	Constructs a spawn point object.
 --//
 function Object:new( ply, position, angle )
-	return GameObject:new(Object, clone(Object.members), ply, ply:GetPos(), Angle(-90,0,0));
+	return GameObject:new(Object, table.Copy(Object.members), ply, ply:GetPos(), Angle(-90,0,0));
 end
 
 --//
